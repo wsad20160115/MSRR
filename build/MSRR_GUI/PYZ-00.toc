@@ -1095,6 +1095,7 @@
   ('stringprep', 'D:\\Python\\lib\\stringprep.py', 'PYMODULE'),
   ('subprocess', 'D:\\Python\\lib\\subprocess.py', 'PYMODULE'),
   ('sysconfig', 'D:\\Python\\lib\\sysconfig.py', 'PYMODULE'),
+  ('tag', 'G:\\我的雲端硬碟\\NTUT\\code\\MSRR_GUI\\tag.py', 'PYMODULE'),
   ('tarfile', 'D:\\Python\\lib\\tarfile.py', 'PYMODULE'),
   ('tempfile', 'D:\\Python\\lib\\tempfile.py', 'PYMODULE'),
   ('textwrap', 'D:\\Python\\lib\\textwrap.py', 'PYMODULE'),

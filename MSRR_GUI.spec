@@ -5,11 +5,11 @@ block_cipher = None
 
 
 a = Analysis(
-    ['MSRR_GUI.py'],
-    pathex=[],
+    ['MSRR_GUI.py', 'tag.py'],
+    pathex=['G:\\我的雲端硬碟\\NTUT\\code\\MSRR_GUI'],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=['G:\\我的雲端硬碟\\NTUT\\code\\MSRR_GUI'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
