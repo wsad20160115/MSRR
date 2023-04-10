@@ -1,0 +1,3 @@
+pip3 install opencv-contrib-python==4.5.5.62
+
+pip install pupil-apriltags

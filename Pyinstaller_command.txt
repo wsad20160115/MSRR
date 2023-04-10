@@ -1,0 +1,3 @@
+pyinstaller -F --icon=ACTL72.ico -w MSRR_GUI.py
+#--icon = Youricon.ico //set what icon you wanna use for this exe file
+#-w cancel the command window when this file is running 
