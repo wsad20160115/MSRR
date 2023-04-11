@@ -3,14 +3,13 @@ import tkinter as tk
 import cv2
 import datetime
 from PIL import Image, ImageTk
-import tag
 #--------------------------------------- ↓ 設定在D槽中import AprilTag 函式庫 ↓ ---------------------------------------#
 import sys
 
-sys.path.append("D:\\")
+syspath = sys.path.append("D:\\")
 
 import pupil_apriltags as apriltag
-
+import tag
 
 
 #------------- ↓ 建立TCP客戶端 ↓ -------------
@@ -32,9 +31,6 @@ class App:
 
     # 設定AprilTag檢測器啟用與關閉
     tagcontrol = False
-
-    # 創建一個Apriltag檢測器，接著檢測AprilTags
-    options = apriltag.Detector(families='tag36h11')
 
     def __init__(self, master):
         self.master = master
@@ -168,16 +164,18 @@ class App:
         ret, frame = self.cam.read()
 
         # print("type = ", type(frame))
-        try:
-            if self.tagcontrol:
-                tag.tag(self, frame) # 使用外部tag.py檔案進行比對
-                # self.tag(frame)
-        except BaseException as e:
-            print(e)
-
+        # try:
+        #     if self.tagcontrol:
+        #         tag.tag(self, frame) # 使用外部tag.py檔案進行比對
+        #         # self.tag(frame)
+        # except BaseException as e:
+        #     print(e)
+        if self.tagcontrol:
+                 tag.tag(self, frame) # 使用外部tag.py檔案進行比對
+                 # self.tag(frame)
         # 將OpenCV圖像格式轉換為PIL圖像格式
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
-        # image = cv2.flip(image, 1) #將攝影機畫面左右翻轉  
+        image = cv2.flip(image, 1) #將攝影機畫面左右翻轉  
         image = Image.fromarray(image)
                 
         # 將PIL圖像格式轉換為Tkinter支援的圖像格式
