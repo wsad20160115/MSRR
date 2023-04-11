@@ -137,4 +137,5 @@ def tag(self, image):
                         print("Lines are parallel")
 
                     cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
+                    cv2.putText(image, "CrossPoint", (int(intersection_x)-50, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
     return image

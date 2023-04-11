@@ -3,8 +3,7 @@ import tkinter as tk
 import cv2
 import datetime
 from PIL import Image, ImageTk
-import math
-
+import tag
 #--------------------------------------- ↓ 設定在D槽中import AprilTag 函式庫 ↓ ---------------------------------------#
 import sys
 
@@ -12,7 +11,7 @@ sys.path.append("D:\\")
 
 import pupil_apriltags as apriltag
 
-import tag
+
 
 #------------- ↓ 建立TCP客戶端 ↓ -------------
 HOST = '0.0.0.0'
@@ -34,7 +33,7 @@ class App:
     # 設定AprilTag檢測器啟用與關閉
     tagcontrol = False
 
-    # 創建一個apriltag，接著檢測AprilTags
+    # 創建一個Apriltag檢測器，接著檢測AprilTags
     options = apriltag.Detector(families='tag36h11')
 
     def __init__(self, master):
@@ -230,8 +229,6 @@ class App:
         nowmin = str(now.minute)
         nowsec = str(now.second)
         self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
-
-        
 
 # 建立主視窗
 root = tk.Tk()
