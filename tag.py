@@ -107,8 +107,8 @@ def tag(self, image):
         END_BC_POSITIONS.append(end_bc)
 
         # ↓ 標註線段中點 ↓ #
-        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
-        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
+        # cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
+        # cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
 
         # ↓ 繪製延伸線段中點連線 ↓ #
         cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
