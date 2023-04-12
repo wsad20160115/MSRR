@@ -1,6 +1,11 @@
 import cv2
 import math
+<<<<<<< HEAD
+=======
+
+>>>>>>> 37d6f80e1906d50f44f9fb9d9f1124e5b7642dd0
 import pupil_apriltags as apriltag
+
 
 def run():
    
@@ -139,31 +144,31 @@ def run():
             # ↓ 標註物件之旋轉角度 ↓ #
             cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
 
-            if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
-                continue
-            else :       
-                for k in range (i):
-                    for j in range (k):
-                        
-                        x1, y1 = END_BC_POSITIONS[j]  # Line_1 start point
-                        x2, y2 = END_AD_POSITIONS[j]  # Line_1 end point
+            # if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
+            #     continue
+            # else :       
+            for k in range (i):
+                for j in range (k):
+                    
+                    x1, y1 = END_BC_POSITIONS[j]  # Line_1 start point
+                    x2, y2 = END_AD_POSITIONS[j]  # Line_1 end point
 
-                        x3, y3 = END_BC_POSITIONS[k]  # Line_2 start point
-                        x4, y4 = END_AD_POSITIONS[k]  # Line_2 end point
+                    x3, y3 = END_BC_POSITIONS[k]  # Line_2 start point
+                    x4, y4 = END_AD_POSITIONS[k]  # Line_2 end point
 
-                        denom = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1)
-                        intersection_x = 0
-                        intersection_y = 0
-                        if denom != 0:
-                            ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
-                            ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
-                            intersection_x = x1 + ua*(x2-x1)
-                            intersection_y = y1 + ua*(y2-y1)
-                            print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
-                        else:
-                            print("Lines are parallel")
+                    denom = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1)
+                    intersection_x = 0
+                    intersection_y = 0
+                    if denom != 0:
+                        ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
+                        ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
+                        intersection_x = x1 + ua*(x2-x1)
+                        intersection_y = y1 + ua*(y2-y1)
+                        print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
+                    else:
+                        print("Lines are parallel")
 
-                        cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
+                    cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
 
             
         cv2.imshow('AprilTag', image)
@@ -171,14 +176,17 @@ def run():
         if cv2.waitKey(1) & 0xFF == 27:
             break
     
-    
+    run()
     # 釋放資源
     cam.release()
     cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    while(True):
-        try:
-            run()
-        except:
-            print("bug")
+# if __name__ == "__main__":
+#     while(True):
+#         try:
+#             run()
+#             if cv2.waitKey(1) & 0xFF == 27:
+#                 break
+#         except:
+#             print("bug")
+        
