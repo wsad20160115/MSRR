@@ -1,7 +1,5 @@
 import cv2
 import math
-import sys
-sys.path.append('D:\\')
 import pupil_apriltags as apriltag
 
 # 設定攝影機編號
@@ -130,22 +128,9 @@ while True:
         END_AD_POSITIONS.append(end_ad)
         END_BC_POSITIONS.append(end_bc)
 
-        # ↓ 標註線段中點 ↓ #
-        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
-        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
-
-        # ↓ 繪製延伸線段中點連線 ↓ #
-        cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
-
-        # ↓ 標註物件之旋轉角度 ↓ #
-        cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-
-        # if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
-        #     continue
-        # else :       
         for k in range (i):
             for j in range (k):
-                
+                print("HI")
                 x1, y1 = END_BC_POSITIONS[j]  # Line_1 start point
                 x2, y2 = END_AD_POSITIONS[j]  # Line_1 end point
 
@@ -166,7 +151,20 @@ while True:
 
                 cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
 
-        
+        # ↓ 標註線段中點 ↓ #
+        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
+        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
+
+        # ↓ 繪製延伸線段中點連線 ↓ #
+        cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
+
+        # ↓ 標註物件之旋轉角度 ↓ #
+        cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+
+        # if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
+        #     continue
+        # else :       
+          
     cv2.imshow('AprilTag', image)
         
     if cv2.waitKey(1) & 0xFF == 27:
