@@ -1,7 +1,5 @@
 import cv2
 import math
-import sys
-sys.path.append('D:\\')
 import pupil_apriltags as apriltag
 
 def run():

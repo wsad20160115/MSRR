@@ -3,11 +3,6 @@ import tkinter as tk
 import cv2
 import datetime
 from PIL import Image, ImageTk
-#--------------------------------------- ↓ 設定在D槽中import AprilTag 函式庫 ↓ ---------------------------------------#
-# import sys
-
-# syspath = sys.path.append("D:\\")
-
 import pupil_apriltags as apriltag
 import tag_detector
 

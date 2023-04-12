@@ -6,15 +6,16 @@ END_BC_POSITIONS = []
 END_AD_POSITIONS = []
 i, j, k = 0,0,0
 
+# 創建一個apriltag，接著檢測AprilTags
+options = apriltag.Detector(families='tag36h11')  # windows
+
 # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
 def tag(self, image):
     
-    # print("type = ", type(image))
     # 將彩色影像轉換為灰度影像
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    # 創建一個apriltag，接著檢測AprilTags
-    options = apriltag.Detector(families='tag36h11')  # windows
+    
     results = options.detect(gray)
     
     #印出 AprilTag Detector 檢測結果
