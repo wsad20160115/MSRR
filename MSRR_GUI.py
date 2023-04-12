@@ -4,7 +4,7 @@ import cv2
 import datetime
 from PIL import Image, ImageTk
 import pupil_apriltags as apriltag
-import tag_detector
+import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
 
 
 #------------- ↓ 建立TCP客戶端 ↓ -------------
