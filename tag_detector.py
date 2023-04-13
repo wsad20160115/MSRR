@@ -66,7 +66,9 @@ def tag(self, image):
 
         mid_ad = (mid_ad_x, mid_ad_y)
         mid_bc = (mid_bc_x, mid_bc_y)
-        
+        end_ad = (0, 0)
+        end_bc = (0, 0)
+
         if mid_ad[0]-mid_bc[0] == 0 :
             mid_angle = 90
         elif b[1] < c[1]:
@@ -77,7 +79,7 @@ def tag(self, image):
 
         # ↓ 設定延伸線的長度係數 ↓ #
         extend_factor = 300
-
+        com_angle = 0
 # ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
         if b[0] < c[0] and b[1] < c[1]:
             flag = 1     
@@ -142,4 +144,3 @@ def tag(self, image):
 
                     cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
                     cv2.putText(image, "CrossPoint", (int(intersection_x)-50, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-        return image

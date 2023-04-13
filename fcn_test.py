@@ -130,29 +130,29 @@ while True:
         END_AD_POSITIONS.append(end_ad)
         END_BC_POSITIONS.append(end_bc)
 
-        for k in range (i):
-            for j in range (k):
+        # for k in range (i):
+        #     for j in range (k):
 
-                x1, y1 = END_BC_POSITIONS[j]  # Line_1 start point
-                x2, y2 = END_AD_POSITIONS[j]  # Line_1 end point
+        #         x1, y1 = END_BC_POSITIONS[j]  # Line_1 start point
+        #         x2, y2 = END_AD_POSITIONS[j]  # Line_1 end point
 
-                x3, y3 = END_BC_POSITIONS[k]  # Line_2 start point
-                x4, y4 = END_AD_POSITIONS[k]  # Line_2 end point
+        #         x3, y3 = END_BC_POSITIONS[k]  # Line_2 start point
+        #         x4, y4 = END_AD_POSITIONS[k]  # Line_2 end point
 
-                denom = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1)
-                intersection_x = 0
-                intersection_y = 0
-                if denom != 0:
-                    ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
-                    ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
-                    intersection_x = x1 + ua*(x2-x1)
-                    intersection_y = y1 + ua*(y2-y1)
-                    print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
-                else:
-                    print("Lines are parallel")
+        #         denom = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1)
+        #         intersection_x = 0
+        #         intersection_y = 0
+        #         if denom != 0:
+        #             ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
+        #             ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
+        #             intersection_x = x1 + ua*(x2-x1)
+        #             intersection_y = y1 + ua*(y2-y1)
+        #             print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
+        #         else:
+        #             print("Lines are parallel")
 
-                cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
-                cv2.putText(image, "CrossPoint", (int(intersection_x)-50, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        #         cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
+        #         cv2.putText(image, "CrossPoint", (int(intersection_x)-50, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
         # ↓ 標註線段中點 ↓ #
         cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)

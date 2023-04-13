@@ -19,6 +19,7 @@ cam.set(cv2.CAP_PROP_FRAME_HEIGHT, cam_height)
 i = 0
 j = 0
 k = 1
+
 END_AD_POSITIONS = []
 END_BC_POSITIONS = []
 

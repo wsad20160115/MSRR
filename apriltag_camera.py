@@ -1,9 +1,5 @@
 import cv2
 import math
-<<<<<<< HEAD
-=======
-
->>>>>>> 37d6f80e1906d50f44f9fb9d9f1124e5b7642dd0
 import pupil_apriltags as apriltag
 
 
@@ -176,7 +172,6 @@ def run():
         if cv2.waitKey(1) & 0xFF == 27:
             break
     
-    run()
     # 釋放資源
     cam.release()
     cv2.destroyAllWindows()

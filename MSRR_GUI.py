@@ -56,38 +56,41 @@ class App:
         self.input_label.grid(row=0, column=0)
         self.input_entry = tk.Entry(master)
         self.input_entry.grid(row=0, column=1)
-
+        
         # 按鈕
+        button_width = 9
+        button_height = 3
+
         self.submit_button = tk.Button(master, text="Clear Message", command=self.clearBox)
         self.submit_button.place(x=80, y=40)
         self.submit_button = tk.Button(master, text="Test", command=lambda: self.send_command("Test"))
         self.submit_button.place(x=10, y=40)
-        self.submit_button = tk.Button(master, width=7, height=3, text="連結", command=lambda: self.send_command("連結"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("Connect"))
         self.submit_button.place(x=20, y=380)
-        self.submit_button = tk.Button(master, width=7, height=3, text="前進", command=lambda: self.send_command("前進"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Forward", command=lambda: self.send_command("Forward"))
         self.submit_button.place(x=100, y=380)
-        self.submit_button = tk.Button(master, width=7, height=3, text="斷開", command=lambda: self.send_command("斷開"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Disconnect", command=lambda: self.send_command("Disconnect"))
         self.submit_button.place(x=180, y=380)
-        self.submit_button = tk.Button(master, width=7, height=3, text="左轉", command=lambda: self.send_command("左轉"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Left", command=lambda: self.send_command("Left"))
         self.submit_button.place(x=20, y=450)
-        self.submit_button = tk.Button(master, width=7, height=3, text="停止", command=lambda: self.send_command("停止"))
+        self.submit_button = tk.Button(master, width = button_width, height= button_height, text="Stop", command=lambda: self.send_command("Stop"))
         self.submit_button.place(x=100, y=450)
-        self.submit_button = tk.Button(master, width=7, height=3, text="右轉", command=lambda: self.send_command("右轉"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Right", command=lambda: self.send_command("Right"))
         self.submit_button.place(x=180, y=450)        
-        self.submit_button = tk.Button(master, width=7, height=3, text="抬升", command=lambda: self.send_command("抬升"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LiftUP", command=lambda: self.send_command("LiftUP"))
         self.submit_button.place(x=20, y=520)
-        self.submit_button = tk.Button(master, width=7, height=3, text="後退", command=lambda: self.send_command("後退"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Backward", command=lambda: self.send_command("Backward"))
         self.submit_button.place(x=100, y=520)
-        self.submit_button = tk.Button(master, width=7, height=3, text="下降", command=lambda: self.send_command("下降"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LayDown", command=lambda: self.send_command("LayDown"))
         self.submit_button.place(x=180, y=520)
-        self.submit_button = tk.Button(master, width=7, height=3, text="擷取", command=self.snapshot)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Snapshot", command=self.snapshot)
         self.submit_button.place(x=20, y=590)
-        self.submit_button = tk.Button(master, width=7, height=3, text="AprilTag", command=self.toggle)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Tag \n Detector", command=self.toggle_tag_detector)
         self.submit_button.place(x=100, y=590)
-        self.submit_button = tk.Button(master, width=7, height=3, text="計算", command=self.calculate)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
         self.submit_button.place(x=180, y=590)
-        self.submit_button = tk.Button(master, width=7, height=3, text="HI", command=self.calculate)
-        self.submit_button.place(x=180, y=660)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="HI", command=self.test_function)
+        self.submit_button.place(x=100, y=660)
         
         # 創建 Scrollbar 控件
         scrollbar = tk.Scrollbar(root)
@@ -145,8 +148,10 @@ class App:
             HOST = var.get()
             print(HOST)
         var.trace('w',show)
-
-    def toggle(self):
+    
+    def test_function(self):
+        pass
+    def toggle_tag_detector(self):
        
         self.tagcontrol = not self.tagcontrol    
 
@@ -187,12 +192,12 @@ class App:
 
     def snapshot(self):
         ret, frame = self.cam.read()
-        frame_flip = cv2.flip(frame, 1)
+        # frame_flip = cv2.flip(frame, 1)
         if ret:
-            cv2.imwrite("./image/snapshot.jpg", frame_flip)
+            cv2.imwrite("./image/snapshot.jpg", frame)
     
     # -------------- ↓ 計算MSRR姿態 ↓ -------------- #
-    def calculate(self):
+    def intersection(self):
         pass
 
     def send_command(self,value):
