@@ -18,7 +18,6 @@ def tag(self, image):
     # 將彩色影像轉換為灰度影像
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    
     results = options.detect(gray)
     
     #印出 AprilTag Detector 檢測結果
@@ -42,7 +41,6 @@ def tag(self, image):
 
         # 顯示 AprilTag 的中心座標
         (cX, cY) = (int(r.center[0]), int(r.center[1]))
-        cv2.circle(image, (cX, cY), 3, (0, 0, 255), -1)
 
         # 顯示檢測到的AprilTag文字
         # tagFamily = r.tag_family.decode("utf-8")
@@ -117,9 +115,10 @@ def tag(self, image):
         # ↓ 繪製延伸線段中點連線 ↓ #
         cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
 
-        # ↓ 標註線段中點 ↓ #
+        # ↓ 標註線段中點與中心點 ↓ #
         cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (0, 0, 255), 5)
         cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (0, 0, 255), 5)
+        cv2.circle(image, (cX, cY), 3, (0, 0, 255), -1)
 
         # ↓ 標註物件之旋轉角度 ↓ #
         # cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)

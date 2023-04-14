@@ -155,8 +155,13 @@ class App:
 
     def toggle_tag_detector(self):
        
-        self.tagcontrol = not self.tagcontrol    
+        self.tagcontrol = not self.tagcontrol  
 
+    # -------------- ↓ 計算 MSRR 延伸線之交點 ↓ -------------- #
+    def intersection(self):
+
+        self.tagintersection = not self.tagintersection
+        
     def clearBox(self):
         self.message_text.delete("1.0", "end")
 
@@ -201,11 +206,6 @@ class App:
         # frame_flip = cv2.flip(frame, 1)
         if ret:
             cv2.imwrite("./image/snapshot.jpg", frame)
-    
-    # -------------- ↓ 計算MSRR姿態 ↓ -------------- #
-    def intersection(self):
-
-        self.tagintersection = not self.tagintersection
 
     def send_command(self,value):
         # 取得使用者輸入的指令
