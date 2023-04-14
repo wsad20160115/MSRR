@@ -5,7 +5,7 @@ import datetime
 from PIL import Image, ImageTk
 import pupil_apriltags as apriltag
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
-
+import tag_intersection
 
 #------------- ↓ 建立TCP客戶端 ↓ -------------
 HOST = '0.0.0.0'
@@ -26,6 +26,7 @@ class App:
 
     # 設定AprilTag檢測器啟用與關閉
     tagcontrol = False
+    tagintersection = False
 
     def __init__(self, master):
         self.master = master
@@ -151,6 +152,7 @@ class App:
     
     def test_function(self):
         pass
+
     def toggle_tag_detector(self):
        
         self.tagcontrol = not self.tagcontrol    
@@ -171,8 +173,12 @@ class App:
         # except BaseException as e:
         #     print(e)
         if self.tagcontrol:
-                 tag_detector.tag(self, frame) # 使用外部tag.py檔案進行比對
-                 # self.tag(frame)
+            tag_detector.tag(self, frame) # 使用外部tag.py檔案進行比對
+            # self.tag(frame)
+
+        if self.tagintersection:
+            tag_intersection.intersection(self, frame)
+            
         # 將OpenCV圖像格式轉換為PIL圖像格式
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
         # image = cv2.flip(image, 1) #將攝影機畫面左右翻轉  
@@ -198,7 +204,8 @@ class App:
     
     # -------------- ↓ 計算MSRR姿態 ↓ -------------- #
     def intersection(self):
-        pass
+
+        self.tagintersection = not self.tagintersection
 
     def send_command(self,value):
         # 取得使用者輸入的指令
