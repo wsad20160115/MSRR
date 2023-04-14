@@ -4,7 +4,7 @@ import math
 
 image = cv2.imread('./image/snapshot.jpg')
 
-def intersection():
+def intersection(self, intersec_img):
     
     # image = cv2.flip(image, 1)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

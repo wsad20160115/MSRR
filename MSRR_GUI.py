@@ -175,7 +175,7 @@ class App:
                  # self.tag(frame)
         # 將OpenCV圖像格式轉換為PIL圖像格式
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
-        image = cv2.flip(image, 1) #將攝影機畫面左右翻轉  
+        # image = cv2.flip(image, 1) #將攝影機畫面左右翻轉  
         image = Image.fromarray(image)
                 
         # 將PIL圖像格式轉換為Tkinter支援的圖像格式

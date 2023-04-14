@@ -37,7 +37,6 @@ while True:
     # 將彩色影像轉換為灰度影像
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    
     results = options.detect(gray)
     
     #印出 AprilTag Detector 檢測結果
@@ -73,7 +72,9 @@ while True:
         # cv2.putText(image, 'd', (d[0]-10, d[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
         if c[0]-b[0] == 0:
-            slope = 90
+            angle = 90
+        elif b[1] < c[1] and c[0]-b[0]:
+            angle = 270
         else:
             # 計算 AprilTag 的旋轉角度    
             slope = (c[1]-b[1])/(c[0]-b[0])
@@ -93,7 +94,7 @@ while True:
         
         if mid_ad[0]-mid_bc[0] == 0 :
             mid_angle = 90
-        elif b[1] < c[1]:
+        elif b[1] < c[1] and mid_ad[0]-mid_bc[0] == 0:
             mid_angle = 270
         else:
             mid_slope = (mid_ad[1]-mid_bc[1])/(mid_ad[0]-mid_bc[0])
@@ -103,29 +104,55 @@ while True:
         extend_factor = 300
 
 # ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
+        # if b[0] < c[0] and b[1] < c[1]:
+        #     flag = 1     
+        #     com_angle = angle+270
+        #     end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+        #     end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+
+        # elif b[0] < c[0] and b[1] > c[1]:
+        #     flag = 2             
+        #     com_angle = abs(angle)
+        #     end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+        #     end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+
+        # elif b[0] > c[0] and b[1] > c[1]:
+        #     flag = 3                      
+        #     com_angle = angle+90
+        #     end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+        #     end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+
+        # elif b[0] > c[0] and b[1] < c[1]:
+        #     flag = 4             
+        #     com_angle = abs(angle)+180
+        #     end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+        #     end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))  
+
         if b[0] < c[0] and b[1] < c[1]:
-            flag = 1     
+            flag = 1             
             com_angle = angle+270
             end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
             end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
 
         elif b[0] < c[0] and b[1] > c[1]:
-            flag = 2             
+            flag = 2            
             com_angle = abs(angle)
             end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
             end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
 
         elif b[0] > c[0] and b[1] > c[1]:
-            flag = 3                      
+            flag = 3
             com_angle = angle+90
             end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
             end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
 
-        elif b[0] > c[0] and b[1] < c[1]:
-            flag = 4             
+        else :
+            flag = 4     
             com_angle = abs(angle)+180
             end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-            end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))  
+            end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+
+        print("Mid angle = ", mid_angle)
 
         END_AD_POSITIONS.append(end_ad)
         END_BC_POSITIONS.append(end_bc)
@@ -154,15 +181,15 @@ while True:
         #         cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
         #         cv2.putText(image, "CrossPoint", (int(intersection_x)-50, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-        # ↓ 標註線段中點 ↓ #
-        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
-        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
-
         # ↓ 繪製延伸線段中點連線 ↓ #
         cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
 
+        # ↓ 標註線段中點 ↓ #
+        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (0, 0, 255), 5)
+        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (0, 0, 255), 5)
+
         # ↓ 標註物件之旋轉角度 ↓ #
-        cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+        # cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
 
         # if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
         #     continue

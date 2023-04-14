@@ -52,8 +52,14 @@ def tag(self, image):
         # cv2.putText(image, 'c', (c[0]-10, c[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0 , 255), 2)
         # cv2.putText(image, 'd', (d[0]-10, d[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
-        # 計算 AprilTag 的旋轉角度    
-        slope = (c[1]-b[1])/(c[0]-b[0])
+        # 計算 AprilTag 的旋轉角度，並考慮角度為90°或270°而產生斜率為 ∞ 之情形
+        if c[0] - b[0] == 0:
+            angle = 90
+        elif b[1] < c[1] and c[0] - b[0] == 0:
+            angle = 270
+        else:
+            slope = (c[1]-b[1])/(c[0]-b[0])
+
         angle = math.degrees(math.atan(slope))
         angle = round(angle, 2)        
         # print('Slope =', slope)
@@ -71,7 +77,7 @@ def tag(self, image):
 
         if mid_ad[0]-mid_bc[0] == 0 :
             mid_angle = 90
-        elif b[1] < c[1]:
+        elif b[1] < c[1] and mid_ad[0]-mid_bc[0] == 0:
             mid_angle = 270
         else:
             mid_slope = (mid_ad[1]-mid_bc[1])/(mid_ad[0]-mid_bc[0])
@@ -108,39 +114,12 @@ def tag(self, image):
         END_AD_POSITIONS.append(end_ad)
         END_BC_POSITIONS.append(end_bc)
 
-        # ↓ 標註線段中點 ↓ #
-        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
-        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
-
         # ↓ 繪製延伸線段中點連線 ↓ #
         cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
 
+        # ↓ 標註線段中點 ↓ #
+        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (0, 0, 255), 5)
+        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (0, 0, 255), 5)
+
         # ↓ 標註物件之旋轉角度 ↓ #
-        cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-
-        if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
-            continue
-        else :       
-            for k in range (i):
-                for j in range (k):
-                    
-                    x1, y1 = END_BC_POSITIONS[j]  # Line_1 start point
-                    x2, y2 = END_AD_POSITIONS[j]  # Line_1 end point
-
-                    x3, y3 = END_BC_POSITIONS[k]  # Line_2 start point
-                    x4, y4 = END_AD_POSITIONS[k]  # Line_2 end point
-
-                    denom = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1)
-                    intersection_x = 0
-                    intersection_y = 0
-                    if denom != 0:
-                        ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
-                        ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
-                        intersection_x = x1 + ua*(x2-x1)
-                        intersection_y = y1 + ua*(y2-y1)
-                        print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
-                    else:
-                        print("Lines are parallel")
-
-                    cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
-                    cv2.putText(image, "CrossPoint", (int(intersection_x)-50, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        # cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)

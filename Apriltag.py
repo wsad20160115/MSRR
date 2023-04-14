@@ -108,8 +108,8 @@ for r in results:
     # print("END AD = ", END_AD_POSITIONS[i-1]) 
     # print("END BC = ", END_BC_POSITIONS[i-1])
     
-    cv2.putText(image, str(flag), (cen[0]-10, cen[1]-35), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-    cv2.putText(image, str(com_angle), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+    # cv2.putText(image, str(flag), (cen[0]-10, cen[1]-35), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+    # cv2.putText(image, str(com_angle), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
     
     # 設定 MSRR 延伸線位置
     cv2.circle(image, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
@@ -119,7 +119,7 @@ for r in results:
     # cv2.putText(image, 'MID_AD', (mid_ad[0]-15, mid_ad[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
     # ↓ 繪製線段中點連線 ↓ #
-    cv2.line(image, mid_ad, mid_bc, (0, 220, 180), 2, lineType=cv2.LINE_8)
+    # cv2.line(image, mid_ad, mid_bc, (0, 220, 180), 2, lineType=cv2.LINE_8)
     
     # ↓ 繪製延伸線 ↓ #
     cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
@@ -157,8 +157,10 @@ for r in results:
                     print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
                 else:
                     print("Lines are parallel")
+
                 text  = str(f"({intersection_x:.2f}, {intersection_y:.2f})")
                 cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
+                cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
                 # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                 
 
