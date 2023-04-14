@@ -89,7 +89,7 @@ class App:
         self.submit_button.place(x=100, y=590)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
         self.submit_button.place(x=180, y=590)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="HI", command=self.test_function)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="HI_test", command=self.test_function)
         self.submit_button.place(x=100, y=660)
         
         # 創建 Scrollbar 控件

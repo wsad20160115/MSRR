@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['MSRR_GUI.py', 'tag.py'],
+    ['MSRR_GUI.py', 'tag_detector.py'],
     pathex=['G:\\我的雲端硬碟\\NTUT\\code\\MSRR_GUI'],
     binaries=[],
     datas=[],
