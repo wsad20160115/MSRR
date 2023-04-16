@@ -51,6 +51,8 @@ def tag(self, image):
         # cv2.putText(image, 'd', (d[0]-10, d[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
         # 計算 AprilTag 的旋轉角度，並考慮角度為90°或270°而產生斜率為 ∞ 之情形
+        slope = 0
+        
         if c[0] - b[0] == 0:
             angle = 90
         elif b[1] < c[1] and c[0] - b[0] == 0:

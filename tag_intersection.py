@@ -7,7 +7,7 @@ intersection_img = cv2.imread('./image/snapshot.jpg')
 def intersection(self, image):
     
     # image = cv2.flip(image, 1)
-    gray = cv2.cvtColor(intersection_img, cv2.COLOR_BGR2GRAY)
+    self.gray = cv2.cvtColor(intersection_img, cv2.COLOR_BGR2GRAY)
 
     i = 0
     j = 0
@@ -16,9 +16,8 @@ def intersection(self, image):
     # 設置旗標 flag 用以除錯及檢測狀態
     flag = 0
 
-    END_AD_POSITIONS = []
-    END_BC_POSITIONS = []
-
+    self.END_AD_POSITIONS = []
+    self.END_BC_POSITIONS = []
 
     extend_factor = 1000
 
@@ -54,8 +53,8 @@ def intersection(self, image):
     # cv2.putText(self.image, str(com_angle), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
     
     # 設定 MSRR 延伸線位置
-    cv2.circle(self.image, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
-    cv2.circle(self.image, (end_ad[0], end_ad[1]), 1, (250, 255, 0), 10)
+    cv2.circle(self.intersection_img, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
+    cv2.circle(self.intersection_img, (end_ad[0], end_ad[1]), 1, (250, 255, 0), 10)
 
     # cv2.putText(image, 'MID_BC', (mid_bc[0]-15, mid_bc[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
     # cv2.putText(image, 'MID_AD', (mid_ad[0]-15, mid_ad[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
@@ -99,5 +98,5 @@ def intersection(self, image):
                 else:
                     print("Lines are parallel")
 
-                cv2.circle(self.image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
-                cv2.putText(self.image, "CrossPoint", (int(intersection_x)-50, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                cv2.circle(self.intersection_img, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
+                cv2.putText(self.intersection_img, "CrossPoint", (int(intersection_x)-50, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
