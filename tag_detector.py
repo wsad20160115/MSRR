@@ -6,8 +6,8 @@ import math
 END_BC_POSITIONS = []
 END_AD_POSITIONS = []
 
-# 設定 i、j、k 來進行迴圈的設定
-i, j, k = 0,0,0
+# 設定 j、k 來進行迴圈的設定
+j, k = 0,0
 
 # 創建一個apriltag，接著檢測AprilTags
 options = apriltag.Detector(families='tag36h11')  # windows
@@ -84,7 +84,7 @@ def tag(self, image):
             mid_angle = abs(math.degrees(math.atan(mid_slope)))
 
         # ↓ 設定延伸線的長度係數 ↓ #
-        extend_factor = 300
+        extend_factor = 130
         com_angle = 0
 # ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
         if b[0] < c[0] and b[1] < c[1]:

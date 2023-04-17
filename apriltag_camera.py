@@ -17,12 +17,17 @@ cam = cv2.VideoCapture(cam_id)
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, cam_width)
 cam.set(cv2.CAP_PROP_FRAME_HEIGHT, cam_height)
 
+width = cam.get(cv2.CAP_PROP_FRAME_WIDTH)
+height = cam.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
 slope = 0
 i = 0
 j = 0
 k = 1
+
 END_AD_POSITIONS = []
 END_BC_POSITIONS = []
+
 # 創建一個apriltag，接著檢測AprilTags
 options = apriltag.Detector(families='tag36h11')  # windows
 
@@ -45,6 +50,7 @@ while True:
     r = results
 # --------------------------------------------- ↓ 找出所有AprilTag檢測的參數 ↓ --------------------------------------------- #    
     for r in results:
+
         i = i+1
         # 取得 AprilTag 的中心座標
         cen = (int(r.center[0]), int(r.center[1]))
@@ -81,8 +87,7 @@ while True:
             slope = (c[1]-b[1])/(c[0]-b[0])
 
         angle = math.degrees(math.atan(slope))
-        angle = round(angle, 2)        
-        # print('Slope =', slope)
+        angle = round(angle, 2)
 
         # ↓ 找出線段中點 ↓ #
         mid_bc_x = int((c[0]+b[0])/2)
@@ -105,29 +110,6 @@ while True:
         extend_factor = 300
 
 # ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
-        # if b[0] < c[0] and b[1] < c[1]:
-        #     flag = 1     
-        #     com_angle = angle+270
-        #     end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-        #     end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-
-        # elif b[0] < c[0] and b[1] > c[1]:
-        #     flag = 2             
-        #     com_angle = abs(angle)
-        #     end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-        #     end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-
-        # elif b[0] > c[0] and b[1] > c[1]:
-        #     flag = 3                      
-        #     com_angle = angle+90
-        #     end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-        #     end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-
-        # elif b[0] > c[0] and b[1] < c[1]:
-        #     flag = 4             
-        #     com_angle = abs(angle)+180
-        #     end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-        #     end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))  
 
         if b[0] < c[0] and b[1] < c[1]:
             flag = 1             
@@ -153,7 +135,7 @@ while True:
             end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
             end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
 
-        print("Mid angle = ", mid_angle)
+        # print("Mid angle = ", mid_angle)
 
         END_AD_POSITIONS.append(end_ad)
         END_BC_POSITIONS.append(end_bc)
@@ -170,7 +152,7 @@ while True:
         #         denom = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1)
         #         intersection_x = 0
         #         intersection_y = 0
-        #         if denom != 0:
+        #         if denom != 0 :
         #             ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
         #             ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
         #             intersection_x = x1 + ua*(x2-x1)
@@ -190,11 +172,7 @@ while True:
         cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (0, 0, 255), 5)
 
         # ↓ 標註物件之旋轉角度 ↓ #
-        # cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-
-        # if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
-        #     continue
-        # else :       
+        # cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)     
           
     cv2.imshow('AprilTag', image)
         

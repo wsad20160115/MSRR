@@ -16,14 +16,10 @@ BUFFER_SIZE = 1024
 win_width = 1300
 win_height = 750
 
-i = 0
-j = 0
-k = 1
-
-END_AD_POSITIONS = []
-END_BC_POSITIONS = []
-
 class App:
+
+    END_AD_POSITIONS = []
+    END_BC_POSITIONS = []
 
     # 設定AprilTag檢測器啟用與關閉
     tagcontrol = False
@@ -89,7 +85,7 @@ class App:
         self.submit_button.place(x=20, y=590)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Tag \n Detector", command=self.toggle_tag_detector)
         self.submit_button.place(x=100, y=590)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.toggle_intersection)
         self.submit_button.place(x=180, y=590)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="HI_test", command=self.test_function)
         self.submit_button.place(x=100, y=660)
@@ -155,14 +151,17 @@ class App:
         pass
 
     def toggle_tag_detector(self):
-       
         self.tagcontrol = not self.tagcontrol  
+        
+    def toggle_intersection(self):
+
+        tag_intersection.intersection(self)
 
     # -------------- ↓ 計算 MSRR 延伸線之交點 ↓ -------------- #
     def intersection(self):
-
-        self.tagintersection = not self.tagintersection
         
+        self.tagcontrol = not self.tagcontrol
+
     def clearBox(self):
         self.message_text.delete("1.0", "end")
 
@@ -182,9 +181,6 @@ class App:
             tag_detector.tag(self, frame) # 使用外部tag.py檔案進行比對
             # self.tag(frame)
 
-        if self.tagintersection:
-            tag_intersection.intersection(self, frame)
-            
         # 將OpenCV圖像格式轉換為PIL圖像格式
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
         # image = cv2.flip(image, 1) #將攝影機畫面左右翻轉  
@@ -198,7 +194,7 @@ class App:
         self.video_area.image = photo
 
         # 每 33 毫秒更新一次畫面
-        self.master.after(33, self.update_video) 
+        self.master.after(15, self.update_video) 
     
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
 
@@ -229,6 +225,7 @@ class App:
                 data = sock.recv(BUFFER_SIZE)
             except Exception as e:
                 print(e)
+
         # 將回應顯示在訊息框中
         now = datetime.datetime.now()
         nowhour = str(now.hour)

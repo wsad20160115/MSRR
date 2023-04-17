@@ -20,7 +20,8 @@ END_BC_POSITIONS = []
 options = apriltag.Detector(families='tag36h11')
 
 results = options.detect(gray)
-# print(results)
+
+r_cen = (0, 0)
 
 for r in results:
     
@@ -52,7 +53,7 @@ for r in results:
     angle = math.degrees(math.atan(slope))
     angle = round(angle, 2)
     # print('Slope =', slope)
-    
+
     # ↓ 找出線段中點 ↓ #
     mid_bc_x = int((c[0]+b[0])/2)
     mid_bc_y = int((c[1]+b[1])/2)
@@ -66,6 +67,7 @@ for r in results:
     mid_angle = abs(math.degrees(math.atan(mid_slope)))
 
     extend_factor = 1000
+    cen_factor = 100
 
     if b[0] < c[0] and b[1] < c[1]:
         flag = 1
@@ -74,6 +76,8 @@ for r in results:
         com_angle = angle+270
         end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
         end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+        r_cen = (int(cen[0] + math.cos(mid_angle)*cen_factor), int(cen[1] + math.sin(mid_angle)*cen_factor))
+
     elif b[0] < c[0] and b[1] > c[1]:
         flag = 2
         angle = math.degrees(math.atan(slope))
@@ -81,6 +85,8 @@ for r in results:
         com_angle = abs(angle)
         end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
         end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+        r_cen = (int(cen[0] + math.cos(mid_angle)*cen_factor), int(cen[1] - math.sin(mid_angle)*cen_factor))
+
     elif b[0] > c[0] and b[1] > c[1]:
         flag = 3
         angle = math.degrees(math.atan(slope))
@@ -88,6 +94,8 @@ for r in results:
         com_angle = angle+90
         end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
         end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+        r_cen = (int(cen[0] - math.cos(mid_angle)*cen_factor), int(cen[1] - math.sin(mid_angle)*cen_factor))
+
     else :
         flag = 4
         angle = math.degrees(math.atan(slope))
@@ -95,6 +103,7 @@ for r in results:
         com_angle = abs(angle)+180
         end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
         end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+        r_cen = (int(cen[0] - math.cos(mid_angle)*cen_factor), int(cen[1] + math.sin(mid_angle)*cen_factor))
 
     END_AD_POSITIONS.append(end_ad)
     END_BC_POSITIONS.append(end_bc)
@@ -114,6 +123,7 @@ for r in results:
     # 設定 MSRR 延伸線位置
     cv2.circle(image, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
     cv2.circle(image, (end_ad[0], end_ad[1]), 1, (250, 255, 0), 10)
+    cv2.circle(image, r_cen, 1, (250, 255, 0), 10)
 
     # cv2.putText(image, 'MID_BC', (mid_bc[0]-15, mid_bc[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
     # cv2.putText(image, 'MID_AD', (mid_ad[0]-15, mid_ad[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
@@ -153,7 +163,7 @@ for r in results:
                     ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
                     intersection_x = x1 + ua*(x2-x1)
                     intersection_y = y1 + ua*(y2-y1)
-                
+                    print("j = ", j , "k = ", k)
                     print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
                 else:
                     print("Lines are parallel")
@@ -163,6 +173,5 @@ for r in results:
                 cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
                 # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                 
-
 cv2.imshow('image', image)
 cv2.waitKey(0)
