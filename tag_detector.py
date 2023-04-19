@@ -118,10 +118,12 @@ def tag(self, image):
         cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
 
         # ↓ 標註線段中點與中心點 ↓ #
-        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (0, 0, 255), 5)
-        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (0, 0, 255), 5)
-        cv2.circle(image, (cX, cY), 3, (0, 0, 255), -1)
+        # cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (0, 0, 255), 5)
+        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (130, 180, 255), 3)
+        # cv2.circle(image, (cX, cY), 3, (0, 0, 255), -1)
 
         # ↓ 標註物件之旋轉角度 ↓ #
-        # cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+        cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+        cv2.putText(image, "C", (mid_ad[0]-10, mid_ad[1]-10), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
+
     return image

@@ -1,6 +1,7 @@
 import cv2
 import pupil_apriltags as apriltag
 import math
+import numpy as np
 
 image = cv2.imread('./image/snapshot.jpg')
 # image = cv2.flip(image, 1)
@@ -76,7 +77,6 @@ for r in results:
         com_angle = angle+270
         end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
         end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-        r_cen = (int(cen[0] + math.cos(mid_angle)*cen_factor), int(cen[1] + math.sin(mid_angle)*cen_factor))
 
     elif b[0] < c[0] and b[1] > c[1]:
         flag = 2
@@ -85,8 +85,7 @@ for r in results:
         com_angle = abs(angle)
         end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
         end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-        r_cen = (int(cen[0] + math.cos(mid_angle)*cen_factor), int(cen[1] - math.sin(mid_angle)*cen_factor))
-
+     
     elif b[0] > c[0] and b[1] > c[1]:
         flag = 3
         angle = math.degrees(math.atan(slope))
@@ -94,7 +93,6 @@ for r in results:
         com_angle = angle+90
         end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
         end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-        r_cen = (int(cen[0] - math.cos(mid_angle)*cen_factor), int(cen[1] - math.sin(mid_angle)*cen_factor))
 
     else :
         flag = 4
@@ -103,17 +101,19 @@ for r in results:
         com_angle = abs(angle)+180
         end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
         end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-        r_cen = (int(cen[0] - math.cos(mid_angle)*cen_factor), int(cen[1] + math.sin(mid_angle)*cen_factor))
 
     END_AD_POSITIONS.append(end_ad)
     END_BC_POSITIONS.append(end_bc)
 
+    pixel_length = np.sqrt((c[0] - b[0]) ** 2 + (c[1] - b[1]) ** 2)
     # ↓ 計算兩中心線段 X 、 Y 座標  ↓ #
+    
     print("\nFlag = ", flag)
+    print('length = ', pixel_length)
     print("Mid Angle = ", round(mid_angle,2))
     print("Angle = ", angle)
     # i從1開始，但儲存兩個END Points的List之初使存儲位置為 0
-    print("i = ", i) 
+    # print("i = ", i) 
     # print("END AD = ", END_AD_POSITIONS[i-1]) 
     # print("END BC = ", END_BC_POSITIONS[i-1])
     
@@ -123,7 +123,7 @@ for r in results:
     # 設定 MSRR 延伸線位置
     cv2.circle(image, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
     cv2.circle(image, (end_ad[0], end_ad[1]), 1, (250, 255, 0), 10)
-    cv2.circle(image, r_cen, 1, (250, 255, 0), 10)
+   
 
     # cv2.putText(image, 'MID_BC', (mid_bc[0]-15, mid_bc[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
     # cv2.putText(image, 'MID_AD', (mid_ad[0]-15, mid_ad[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)

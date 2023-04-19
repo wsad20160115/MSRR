@@ -181,5 +181,5 @@ def intersection(self):
                     cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
                     # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                 
-    cv2.imshow('image', image)
+    cv2.imshow('Intersection', image)
 cv2.waitKey(0)

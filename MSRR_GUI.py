@@ -12,8 +12,8 @@ PORT = 9999
 BUFFER_SIZE = 1024
 
 # 設定視窗初始大小
-win_width = 1300
-win_height = 750
+win_width = 1600
+win_height = 900
 
 class App:
 
@@ -33,8 +33,8 @@ class App:
         self.cam_id = 0
         
         # 設定攝影機視訊大小
-        self.cam_width = 1920*0.5
-        self.cam_height = 1080*0.5
+        self.cam_width = 1920*0.7
+        self.cam_height = 1080*0.7
 
         # 設定攝影機
         self.cam = cv2.VideoCapture(self.cam_id)
@@ -43,7 +43,7 @@ class App:
 
         # 設定畫面顯示區域
         self.video_area = tk.Label(master)
-        self.video_area.place(x=270, y=0)
+        self.video_area.place(x=300, y=0)
 
         # 開始更新畫面
         self.update_video()
@@ -95,7 +95,7 @@ class App:
         # 訊息框
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
         self.message_label.place(x=10, y=80)
-        self.message_text = tk.Text(master, width=35, height=12)        
+        self.message_text = tk.Text(master, width=40, height=12)        
         self.message_text.config(yscrollcommand=scrollbar.set)
         scrollbar.config()
         self.message_text.place(x=10, y=110)
@@ -214,7 +214,7 @@ class App:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             try:
                 print(HOST)
-                sock.settimeout(0.2)
+                sock.settimeout(0.5)
                 sock.connect((HOST, PORT))
 
                 # 傳送指令

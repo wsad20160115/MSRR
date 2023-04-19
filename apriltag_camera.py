@@ -172,7 +172,7 @@ while True:
         cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (0, 0, 255), 5)
 
         # ↓ 標註物件之旋轉角度 ↓ #
-        # cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)     
+        cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)     
           
     cv2.imshow('AprilTag', image)
         
