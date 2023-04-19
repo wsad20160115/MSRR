@@ -7,7 +7,7 @@ block_cipher = None
 a = Analysis(
     ['MSRR_GUI.py', 'tag_detector.py'],
     pathex=['G:\\我的雲端硬碟\\NTUT\\code\\MSRR_GUI'],
-    binaries=[],
+    binaries=['D:\\Python3.10\\Lib\\site-packages\\pupil_apriltags\\lib\\apriltag.dll'],
     datas=[],
     hiddenimports=['G:\\我的雲端硬碟\\NTUT\\code\\MSRR_GUI'],
     hookspath=[],

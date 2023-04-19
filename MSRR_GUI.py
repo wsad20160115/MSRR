@@ -3,9 +3,8 @@ import tkinter as tk
 import cv2
 import datetime
 from PIL import Image, ImageTk
-import pupil_apriltags as apriltag
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
-import tag_intersection
+import tag_intersection # 引用 tag_intersection 用以找出兩 MSRR 之交點 
 
 #------------- ↓ 建立TCP客戶端 ↓ -------------
 HOST = '0.0.0.0'
