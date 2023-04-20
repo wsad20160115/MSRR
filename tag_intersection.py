@@ -9,8 +9,8 @@ def intersection(self):
     self.cam_id = 0
     
     # 設定攝影機視訊大小
-    self.cam_width = 1920*0.5
-    self.cam_height = 1080*0.5
+    self.cam_width = 1920*0.7
+    self.cam_height = 1080*0.7
 
     # 設定攝影機
     self.cam = cv2.VideoCapture(self.cam_id)
@@ -140,10 +140,10 @@ def intersection(self):
         # cv2.line(image, mid_ad, mid_bc, (0, 220, 180), 2, lineType=cv2.LINE_8)
         
         # ↓ 繪製延伸線 ↓ #
-        cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
+        cv2.line(image, end_ad, end_bc, (255, 255, 0), 1, lineType=cv2.LINE_8)
 
         # 標註中心點
-        cv2.circle(image, (cen[0], cen[1]), 1, (0, 0, 255),5 )
+        cv2.circle(image, (cen[0], cen[1]), 1, (0, 0, 255),3 )
 
         # ↓ 標註線段中點 ↓ #
         cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
@@ -164,8 +164,10 @@ def intersection(self):
                     x4, y4 = END_AD_POSITIONS[k]  # Line_2 end point
 
                     denom = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1)
+
                     intersection_x = 0
                     intersection_y = 0
+
                     if denom != 0 :
                         ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
                         ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom

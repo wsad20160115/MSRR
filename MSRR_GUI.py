@@ -15,10 +15,10 @@ BUFFER_SIZE = 1024
 win_width = 1600
 win_height = 900
 
-class App:
+END_AD_POSITIONS = []
+END_BC_POSITIONS = []
 
-    END_AD_POSITIONS = []
-    END_BC_POSITIONS = []
+class App:
 
     # 設定AprilTag檢測器啟用與關閉
     tagcontrol = False
@@ -161,7 +161,7 @@ class App:
         
         self.tagcontrol = not self.tagcontrol
 
-    def clearBox(self):
+    def clearBox(self): # 清除 Response 訊息框中的所有訊息
         self.message_text.delete("1.0", "end")
 
     #------------------ ↓ 顯示影像 ↓ ------------------#       
@@ -192,7 +192,7 @@ class App:
         self.video_area.configure(image=photo)
         self.video_area.image = photo
 
-        # 每 33 毫秒更新一次畫面
+        # 每 15 毫秒更新一次畫面
         self.master.after(15, self.update_video) 
     
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
