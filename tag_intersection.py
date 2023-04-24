@@ -19,9 +19,10 @@ def intersection(self):
 
     ret, frame = self.cam.read()
 
-    cv2.imwrite("./image/intersection.jpg", frame)
+    # cv2.imwrite("./image/intersection.jpg", frame)
 
-    image = cv2.imread('./image/intersection.jpg')
+    # image = cv2.imread('./image/intersection.jpg')
+    image = frame
     # image = cv2.flip(image, 1)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -57,13 +58,6 @@ def intersection(self):
         cv2.line(image, b, c, (255, 0, 255), 1, lineType=cv2.LINE_AA)
         cv2.line(image, c, d, (255, 0, 255), 1, lineType=cv2.LINE_AA)
         cv2.line(image, d, a, (255, 0, 255), 1, lineType=cv2.LINE_AA)
-
-        # 在影像上顯示AprilTag的Family
-        # cv2.putText(image, tagFamily, (a[0], a[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        # cv2.putText(image, 'a', (a[0]-10, a[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-        # cv2.putText(image, 'b', (b[0]-10, b[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-        # cv2.putText(image, 'c', (c[0]-10, c[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0 , 255), 2)
-        # cv2.putText(image, 'd', (d[0]-10, d[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
         #計算 AprilTag 的旋轉角度       
         slope = (c[1]-b[1])/(c[0]-b[0])

@@ -59,9 +59,11 @@ class App:
         button_height = 3
 
         self.submit_button = tk.Button(master, text="Clear Message", command=self.clearBox)
-        self.submit_button.place(x=80, y=40)
-        self.submit_button = tk.Button(master, text="Test", command=lambda: self.send_command("Test"))
+        self.submit_button.place(x=180, y=40)
+        self.submit_button = tk.Button(master, text="LED On", command=lambda: self.send_command("LED ON"))
         self.submit_button.place(x=10, y=40)
+        self.submit_button = tk.Button(master, text="LED OFF", command=lambda: self.send_command("LED OFF"))
+        self.submit_button.place(x=100, y=40)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("Connect"))
         self.submit_button.place(x=20, y=380)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Forward", command=lambda: self.send_command("Forward"))
@@ -100,7 +102,7 @@ class App:
         scrollbar.config()
         self.message_text.place(x=10, y=110)
         
-        options1 = [ #設定連結開發板之IP
+        options1 = [ #設定被連結開發板之IP
             "Choose First MSRR",
             "192.168.50.14",
             "192.168.50.55",
@@ -114,7 +116,7 @@ class App:
             "192.168.50.239"
         ]
 
-        options2 = [ #設定被連結開發板之IP
+        options2 = [ #設定連結開發板之IP
             "Choose Second MSRR",
             "192.168.50.14",
             "192.168.50.55",
@@ -125,7 +127,8 @@ class App:
             "192.168.50.208",           
             "192.168.50.220",
             "192.168.50.234",       
-            "192.168.50.239"
+            "192.168.50.239",
+            "192.168.0.101"
         ]
         
         var = tk.StringVar(master)
@@ -239,7 +242,7 @@ screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 x = int((screen_width - win_width) / 2) 
 y = int((screen_height - win_height) / 2)
-root.geometry(f"{win_width}x{win_height}+{x}+{y}") #設定視窗初始位置
+root.geometry(f"{win_width}x{win_height}+{x}+{y-30}") #設定視窗初始位置
 
 app = App(root)
 root.mainloop()
