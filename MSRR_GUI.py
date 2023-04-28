@@ -88,8 +88,12 @@ class App:
         self.submit_button.place(x=100, y=590)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.toggle_intersection)
         self.submit_button.place(x=180, y=590)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="WI-FI", command=lambda: self.send_command("WI-FI"))
+        self.submit_button.place(x=20, y=660)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="HI_test", command=self.test_function)
         self.submit_button.place(x=100, y=660)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command=lambda: self.send_command("Shutdown"))
+        self.submit_button.place(x=180, y=660)
         
         # 創建 Scrollbar 控件
         scrollbar = tk.Scrollbar(root)
@@ -156,12 +160,12 @@ class App:
         self.tagcontrol = not self.tagcontrol  
         
     def toggle_intersection(self):
-
+        
         tag_intersection.intersection(self)
 
     # -------------- ↓ 計算 MSRR 延伸線之交點 ↓ -------------- #
     def intersection(self):
-        
+        tag_detector.AprilTag.intersection
         self.tagcontrol = not self.tagcontrol
 
     def clearBox(self): # 清除 Response 訊息框中的所有訊息
@@ -246,4 +250,3 @@ root.geometry(f"{win_width}x{win_height}+{x}+{y-30}") #設定視窗初始位置
 
 app = App(root)
 root.mainloop()
-
