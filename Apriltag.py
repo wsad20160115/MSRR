@@ -3,7 +3,7 @@ import pupil_apriltags as apriltag
 import math
 import numpy as np
 
-image = cv2.imread('./image/snapshot.jpg')
+image = cv2.imread('./image/snapshot1.jpg')
 # image = cv2.flip(image, 1)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -23,6 +23,9 @@ options = apriltag.Detector(families='tag36h11')
 results = options.detect(gray)
 
 r_cen = (0, 0)
+
+intersection_x = 0
+intersection_y = 0
 
 for r in results:
     
@@ -105,11 +108,11 @@ for r in results:
     END_AD_POSITIONS.append(end_ad)
     END_BC_POSITIONS.append(end_bc)
 
-    pixel_length = np.sqrt((c[0] - b[0]) ** 2 + (c[1] - b[1]) ** 2)
+    # pixel_length = np.sqrt((c[0] - b[0]) ** 2 + (c[1] - b[1]) ** 2)
     # ↓ 計算兩中心線段 X 、 Y 座標  ↓ #
     
     print("\nFlag = ", flag)
-    print('length = ', pixel_length)
+    # print('length = ', pixel_length)
     print("Mid Angle = ", round(mid_angle,2))
     print("Angle = ", angle)
     # i從1開始，但儲存兩個END Points的List之初使存儲位置為 0
@@ -132,7 +135,7 @@ for r in results:
     # cv2.line(image, mid_ad, mid_bc, (0, 220, 180), 2, lineType=cv2.LINE_8)
     
     # ↓ 繪製延伸線 ↓ #
-    cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
+    cv2.line(image, end_ad, end_bc, (255, 255, 0), 1, lineType=cv2.LINE_8)
 
     # 標註中心點
     cv2.circle(image, (cen[0], cen[1]), 1, (0, 0, 255),5 )
@@ -142,6 +145,8 @@ for r in results:
     cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
     
     # cv2.circle(image, (int(end_ad[0]), int(end_ad[1])), 1, (250, 255, 0), 10)
+    
+    cv2.putText(image, str(i), cen, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
     if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
         continue
@@ -156,8 +161,7 @@ for r in results:
                 x4, y4 = END_AD_POSITIONS[k]  # Line_2 end point
 
                 denom = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1)
-                intersection_x = 0
-                intersection_y = 0
+                
                 if denom != 0 :
                     ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
                     ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
@@ -165,6 +169,8 @@ for r in results:
                     intersection_y = y1 + ua*(y2-y1)
                     print("j = ", j , "k = ", k)
                     print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
+                    distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5
+                    print('Distance (mm) = ', distance*0.559025768)
                 else:
                     print("Lines are parallel")
 
@@ -172,6 +178,7 @@ for r in results:
                 cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
                 cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
                 # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                
+                              
 cv2.imshow('image', image)
+
 cv2.waitKey(0)

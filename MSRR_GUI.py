@@ -86,7 +86,7 @@ class App:
         self.submit_button.place(x=20, y=590)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Tag \n Detector", command=self.toggle_tag_detector)
         self.submit_button.place(x=100, y=590)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.toggle_intersection)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
         self.submit_button.place(x=180, y=590)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="WI-FI", command=lambda: self.send_command("WI-FI"))
         self.submit_button.place(x=20, y=660)
@@ -158,15 +158,10 @@ class App:
 
     def toggle_tag_detector(self):
         self.tagcontrol = not self.tagcontrol  
-        
-    def toggle_intersection(self):
-        
-        tag_intersection.intersection(self)
 
     # -------------- ↓ 計算 MSRR 延伸線之交點 ↓ -------------- #
     def intersection(self):
-        tag_detector.AprilTag.intersection
-        self.tagcontrol = not self.tagcontrol
+        tag_detector.Tag.intersection(self)
 
     def clearBox(self): # 清除 Response 訊息框中的所有訊息
         self.message_text.delete("1.0", "end")
@@ -184,7 +179,7 @@ class App:
         # except BaseException as e:
         #     print(e)
         if self.tagcontrol:
-            tag_detector.tag(self, frame) # 使用外部tag.py檔案進行比對
+            tag_detector.Tag.tag(self, frame) # 使用外部tag.py檔案進行比對
             # self.tag(frame)
 
         # 將OpenCV圖像格式轉換為PIL圖像格式

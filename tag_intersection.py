@@ -144,6 +144,8 @@ def intersection(self):
         cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
         
         # cv2.circle(image, (int(end_ad[0]), int(end_ad[1])), 1, (250, 255, 0), 10)
+        
+        cv2.putText(image, str(i), cen, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
         if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
             continue
@@ -176,6 +178,7 @@ def intersection(self):
                     cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
                     cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
                     # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                
+        distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5        
     cv2.imshow('Intersection', image)
+    print('Distance = ', distance)
 cv2.waitKey(0)
