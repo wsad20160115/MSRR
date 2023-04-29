@@ -1,10 +1,14 @@
 import cv2
 import pupil_apriltags as apriltag
 import math
-
+import globals
 
 # print(results)
 def intersection(self):
+
+    globals.intersection_x = 0
+    globals.intersection_y = 0
+
     # 設定攝影機編號
     self.cam_id = 0
     
@@ -41,6 +45,7 @@ def intersection(self):
     j = 0
     k = 1
 
+ 
     for r in results:
         
         i = i + 1
@@ -60,9 +65,9 @@ def intersection(self):
         cv2.line(image, d, a, (255, 0, 255), 1, lineType=cv2.LINE_AA)
 
         #計算 AprilTag 的旋轉角度       
-        slope = (c[1]-b[1])/(c[0]-b[0])
-        angle = math.degrees(math.atan(slope))
-        angle = round(angle, 2)
+        # slope = (c[1]-b[1])/(c[0]-b[0])
+        # angle = math.degrees(math.atan(slope))
+        # angle = round(angle, 2)
         # print('Slope =', slope)
         
         # ↓ 找出線段中點 ↓ #
@@ -80,31 +85,15 @@ def intersection(self):
         extend_factor = 1000
 
         if b[0] < c[0] and b[1] < c[1]:
-            flag = 1
-            angle = math.degrees(math.atan(slope))
-            angle = round(angle, 2)   
-            com_angle = angle+270
             end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
             end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
         elif b[0] < c[0] and b[1] > c[1]:
-            flag = 2
-            angle = math.degrees(math.atan(slope))
-            angle = round(angle, 2)
-            com_angle = abs(angle)
             end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
             end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
         elif b[0] > c[0] and b[1] > c[1]:
-            flag = 3
-            angle = math.degrees(math.atan(slope))
-            angle = round(angle, 2)             
-            com_angle = angle+90
             end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
             end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
         else :
-            flag = 4
-            angle = math.degrees(math.atan(slope))
-            angle = round(angle, 2)       
-            com_angle = abs(angle)+180
             end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
             end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
 
@@ -112,11 +101,11 @@ def intersection(self):
         END_BC_POSITIONS.append(end_bc)
 
         # ↓ 計算兩中心線段 X 、 Y 座標  ↓ #
-        print("\nFlag = ", flag)
-        print("Mid Angle = ", round(mid_angle,2))
-        print("Angle = ", angle)
+        # print("\nFlag = ", flag)
+        # print("Mid Angle = ", round(mid_angle,2))
+        # print("Angle = ", angle)
         # i從1開始，但儲存兩個END Points的List之初使存儲位置為 0
-        print("i = ", i) 
+        # print("i = ", i) 
         # print("END AD = ", END_AD_POSITIONS[i-1]) 
         # print("END BC = ", END_BC_POSITIONS[i-1])
         
@@ -160,25 +149,23 @@ def intersection(self):
                     x4, y4 = END_AD_POSITIONS[k]  # Line_2 end point
 
                     denom = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1)
-
-                    intersection_x = 0
-                    intersection_y = 0
-
+                    
                     if denom != 0 :
                         ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
                         ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
-                        intersection_x = x1 + ua*(x2-x1)
-                        intersection_y = y1 + ua*(y2-y1)
-                        print("j = ", j , "k = ", k)
-                        print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
+                        globals.intersection_x = x1 + ua*(x2-x1)
+                        globals.intersection_y = y1 + ua*(y2-y1)
+                        # print("j = ", j , "k = ", k)
+                        # print(f"Intersection point: ({globals.intersection_x:.2f}, {globals.intersection_y:.2f})")
                     else:
                         print("Lines are parallel")
 
                     # text  = str(f"({intersection_x:.2f}, {intersection_y:.2f})")
-                    cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
-                    cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
+                    cv2.circle(image, (int(globals.intersection_x), int(globals.intersection_y)), 1, (0, 200, 255), 10)
+                    cv2.putText(image, "Intersection", (int(globals.intersection_x)-60, int(globals.intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
                     # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                    distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5        
+                    distance = ((mid_ad[0] - globals.intersection_x)**2 + (mid_ad[1] - globals.intersection_y)**2)**0.5    
+               
     cv2.imshow('Intersection', image)
     print('Distance = ', distance)
 cv2.waitKey(0)

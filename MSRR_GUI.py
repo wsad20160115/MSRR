@@ -7,7 +7,8 @@ from PIL import Image, ImageTk
 import struct
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
 import tag_intersection # 引用 tag_intersection 用以找出兩 MSRR 之交點 
-
+import test
+import globals
 #------------- ↓ 建立TCP客戶端 ↓ -------------
 HOST = '0.0.0.0'
 PORT = 9999
@@ -25,6 +26,7 @@ class App:
     # 設定AprilTag檢測器啟用與關閉
     tagcontrol = False
     tagintersection = False
+    putintersection = False
 
     def __init__(self, master):
         self.master = master
@@ -65,7 +67,7 @@ class App:
         self.submit_button = tk.Button(master, text="LED On", command=lambda: self.send_command("LED ON"))
         self.submit_button.place(x=10, y=40)
         self.submit_button = tk.Button(master, text="LED OFF", command=lambda: self.send_command("LED OFF"))
-        self.submit_button.place(x=100, y=40)
+        self.submit_button.place(x=80, y=40)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("Connect"))
         self.submit_button.place(x=20, y=380)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Forward", command=lambda: self.send_command("Forward"))
@@ -90,7 +92,7 @@ class App:
         self.submit_button.place(x=100, y=590)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
         self.submit_button.place(x=180, y=590)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="WI-FI", command = self.send_command)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Put\n Intersection", command = self.put_intersection)
         self.submit_button.place(x=20, y=660)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="HI_test", command=self.test_function)
         self.submit_button.place(x=100, y=660)
@@ -165,25 +167,29 @@ class App:
     
     def test_function(self):
         pass
-        #print("Intersection_X = ", intersection_x, "Intersection_Y =", intersection_y)
 
     def toggle_tag_detector(self):
-        self.tagcontrol = not self.tagcontrol  
+        
+        self.tagcontrol = not self.tagcontrol
 
+    def put_intersection(self):
+        self.putintersection = not self.putintersection
+        
     # -------------- ↓ 計算 MSRR 延伸線之交點 ↓ -------------- #
     def intersection(self):
+        globals.initialize()
         tag_intersection.intersection(self)
-        #print(tag_intersection.intersection.intersection_x)
-        #print('INTERSECTION_X = ', ,'INTERSECTION_Y = ', a )
+
+        print('INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(globals.intersection_x, globals.intersection_y))
 
     def clearBox(self): # 清除 Response 訊息框中的所有訊息
         self.message_text.delete("1.0", "end")
-
+    
     #------------------ ↓ 顯示影像 ↓ ------------------#       
     def update_video(self):
         # 從攝影機捕捉一張畫面
         ret, frame = self.cam.read()
-
+        center = (0, 0)
         # print("type = ", type(frame))
         # try:
         #     if self.tagcontrol:
@@ -191,9 +197,16 @@ class App:
         #         # self.tag(frame)
         # except BaseException as e:
         #     print(e)
+        
+
         if self.tagcontrol:
             tag_detector.Tag.tag(self, frame) # 使用外部tag.py檔案進行比對
+            # print('MID_AD = ', (globals.intersection_x, globals.intersection_y))
             # self.tag(frame)
+            print('MID_AD_X = ', globals.mid_ad_x, 'MID_AD_Y = ', globals.mid_ad_y)
+
+        if self.putintersection:
+           cv2.circle(frame, (int(globals.intersection_x), int(globals.intersection_y)), 1, (0, 0, 255), 4)
 
         # 將OpenCV圖像格式轉換為PIL圖像格式
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
@@ -209,7 +222,7 @@ class App:
 
         # 每 15 毫秒更新一次畫面
         self.master.after(15, self.update_video) 
-    
+        
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
 
     def snapshot(self):
@@ -251,6 +264,7 @@ class App:
 
         def reading_error():
             pass
+
         def send_connect_command():
             pass
 
