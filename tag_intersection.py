@@ -1,13 +1,12 @@
 import cv2
 import pupil_apriltags as apriltag
 import math
-import globals
 
-# print(results)
 def intersection(self):
-
-    globals.intersection_x = 0
-    globals.intersection_y = 0
+    global intersection_x, intersection_y
+    
+    intersection_x = 0
+    intersection_y = 0
 
     # 設定攝影機編號
     self.cam_id = 0
@@ -154,18 +153,18 @@ def intersection(self):
                     if denom != 0 :
                         ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/denom
                         ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/denom
-                        globals.intersection_x = x1 + ua*(x2-x1)
-                        globals.intersection_y = y1 + ua*(y2-y1)
+                        intersection_x = x1 + ua*(x2-x1)
+                        intersection_y = y1 + ua*(y2-y1)
                         # print("j = ", j , "k = ", k)
                         # print(f"Intersection point: ({globals.intersection_x:.2f}, {globals.intersection_y:.2f})")
                     else:
                         print("Lines are parallel")
 
                     # text  = str(f"({intersection_x:.2f}, {intersection_y:.2f})")
-                    cv2.circle(image, (int(globals.intersection_x), int(globals.intersection_y)), 1, (0, 200, 255), 10)
-                    cv2.putText(image, "Intersection", (int(globals.intersection_x)-60, int(globals.intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
+                    cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
+                    cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
                     # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                    distance = ((mid_ad[0] - globals.intersection_x)**2 + (mid_ad[1] - globals.intersection_y)**2)**0.5    
+                    distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5    
                
     cv2.imshow('Intersection', image)
     print('Distance = ', distance)

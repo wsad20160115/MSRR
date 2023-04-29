@@ -7,7 +7,7 @@ from PIL import Image, ImageTk
 import struct
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
 import tag_intersection # 引用 tag_intersection 用以找出兩 MSRR 之交點 
-import globals
+
 
 # version back
 #------------- ↓ 建立TCP客戶端 ↓ -------------
@@ -23,6 +23,11 @@ END_AD_POSITIONS = []
 END_BC_POSITIONS = []
 
 class App:
+
+    global classTag, MIDOFMSRR
+    MIDOFMSRR = (0.0, 0.0)
+
+    classTag = tag_detector.Tag()
 
     # 設定AprilTag檢測器啟用與關閉
     tagcontrol = False
@@ -173,15 +178,16 @@ class App:
         
         self.tagcontrol = not self.tagcontrol
 
+        self.cenofmsrr = self.classTag.mid_ad
+
     def put_intersection(self):
         self.putintersection = not self.putintersection
         
     # -------------- ↓ 計算 MSRR 延伸線之交點 ↓ -------------- #
     def intersection(self):
-        globals.initialize()
         tag_intersection.intersection(self)
 
-        print('INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(globals.intersection_x, globals.intersection_y))
+        print('INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(tag_intersection.intersection_x, tag_intersection.intersection_y))
 
     def clearBox(self): # 清除 Response 訊息框中的所有訊息
         self.message_text.delete("1.0", "end")
@@ -200,13 +206,14 @@ class App:
         #     print(e)
         
         if self.tagcontrol:
-            tag_detector.Tag.tag(self, frame) # 使用外部tag.py檔案進行比對
+            self.MIDOFMSRR = classTag.tag(frame) # 使用外部tag.py檔案進行比對
             # print('MID_AD = ', (globals.intersection_x, globals.intersection_y))
             # self.tag(frame)
-            print('MID_AD_X = ', globals.mid_ad_x, 'MID_AD_Y = ', globals.mid_ad_y)
-
+            # print('MID_AD_X = ', tag_detector.mid_ad_x, 'MID_AD_Y = ', tag_detector.mid_ad_y)\
+            print('MID_AD = ', self.MIDOFMSRR)
+           
         if self.putintersection:
-           cv2.circle(frame, (int(globals.intersection_x), int(globals.intersection_y)), 1, (0, 0, 255), 4)
+           cv2.circle(frame, (int(tag_intersection.intersection_x), int(tag_intersection.intersection_y)), 1, (0, 0, 255), 4)
 
         # 將OpenCV圖像格式轉換為PIL圖像格式
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
@@ -261,17 +268,19 @@ class App:
         self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
 
     def connect_fcn(self):
-
+        global error
         def reading_error():
-            global error
-            error = ((globals.intersection_x - globals.mid_ad_x)**2 + (globals.intersection_y-globals.mid_ad_y)**2)**0.5
+            
+            error = ((tag_intersection.intersection_x - tag_detector.mid_ad_x)**2 + (tag_intersection.intersection_y-tag_detector.mid_ad_y)**2)**0.5
             print('Error = ', error)
 
         def send_connect_command():
+            
             print('This is error + 100 :', error+100)
 
         thread_reading_error = threading.Thread(target=reading_error)
         thread_send_connect_command = threading.Thread(target=send_connect_command)
+        # thread_update_video = threading.Thread(target=self.update_video)
 
         thread_reading_error.start()
         thread_send_connect_command.start()

@@ -14,6 +14,7 @@ j, k = 0,0
 options = apriltag.Detector(families='tag36h11')  # windows
 
 class Tag():
+
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
     def tag(self, image):
 
@@ -74,10 +75,11 @@ class Tag():
             # ↓ 找出線段中點 ↓ #
             mid_bc_x = int((c[0]+b[0])/2)
             mid_bc_y = int((c[1]+b[1])/2)
-            globals.mid_ad_x = int((a[0]+d[0])/2)
-            globals.mid_ad_y = int((a[1]+d[1])/2)
+            mid_ad_x = int((a[0]+d[0])/2)
+            mid_ad_y = int((a[1]+d[1])/2)
 
-            mid_ad = (globals.mid_ad_x, globals.mid_ad_y)
+            global mid_ad
+            mid_ad = (mid_ad_x, mid_ad_y)
             mid_bc = (mid_bc_x, mid_bc_y)
             end_ad = (0, 0)
             end_bc = (0, 0)
@@ -102,7 +104,7 @@ class Tag():
                     angle = round(angle, 2)   
                     com_angle = abs(angle)+270
                     end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-                    end_ad = (int(globals.mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                    end_ad = (int( mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
 
                 elif b[0] < c[0] and b[1] > c[1]:
                     quadrant = 1
@@ -110,7 +112,7 @@ class Tag():
                     angle = round(angle, 2)
                     com_angle = abs(angle)
                     end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-                    end_ad = (int(globals.mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                    end_ad = (int( mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
                 
                 elif b[0] > c[0] and b[1] > c[1]:
                     quadrant = 2
@@ -118,7 +120,7 @@ class Tag():
                     angle = round(angle, 2)             
                     com_angle = angle+90
                     end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-                    end_ad = (int(globals.mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+                    end_ad = (int( mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
 
                 else :
                     quadrant = 3
@@ -126,7 +128,7 @@ class Tag():
                     angle = round(angle, 2)       
                     com_angle = abs(angle)+180
                     end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-                    end_ad = (int(globals.mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))  
+                    end_ad = (int( mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))  
 
             END_AD_POSITIONS.append(end_ad)
             END_BC_POSITIONS.append(end_bc)
@@ -144,5 +146,8 @@ class Tag():
             cv2.putText(image, "C", (mid_ad[0]-10, mid_ad[1]-10), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
             cv2.putText(image, str(quadrant), (mid_ad[0]-10, mid_ad[1]+20), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
 
-        return image
+        return mid_ad
+    
+    def get_MID(self):
+        return self.mid_ad
        
