@@ -12,7 +12,7 @@ j, k = 0,0
 # 創建一個apriltag，接著檢測AprilTags
 options = apriltag.Detector(families='tag36h11')  # windows
 
-
+ww = 0
 class Tag():
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
     def tag(self, image):
@@ -238,11 +238,11 @@ class Tag():
             END_BC_POSITIONS.append(end_bc)
 
             # ↓ 計算兩中心線段 X 、 Y 座標  ↓ #
-            print("\nFlag = ", flag)
-            print("Mid Angle = ", round(mid_angle,2))
-            print("Angle = ", angle)
+            # print("\nFlag = ", flag)
+            # print("Mid Angle = ", round(mid_angle,2))
+            # print("Angle = ", angle)
             # i從1開始，但儲存兩個END Points的List之初使存儲位置為 0
-            print("i = ", i) 
+            # print("i = ", i) 
             # print("END AD = ", END_AD_POSITIONS[i-1]) 
             # print("END BC = ", END_BC_POSITIONS[i-1])
             
@@ -305,3 +305,5 @@ class Tag():
                     
         cv2.imshow('Intersection', image)
     cv2.waitKey(0)
+    
+       

@@ -3,7 +3,7 @@ import pupil_apriltags as apriltag
 import math
 import numpy as np
 
-image = cv2.imread('./image/snapshot1.jpg')
+image = cv2.imread('./image/snapshot.jpg')
 # image = cv2.flip(image, 1)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -121,7 +121,7 @@ for r in results:
     # print("END BC = ", END_BC_POSITIONS[i-1])
     
     # cv2.putText(image, str(flag), (cen[0]-10, cen[1]-35), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-    # cv2.putText(image, str(com_angle), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+    cv2.putText(image, str(com_angle), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
     
     # 設定 MSRR 延伸線位置
     cv2.circle(image, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
@@ -146,7 +146,7 @@ for r in results:
     
     # cv2.circle(image, (int(end_ad[0]), int(end_ad[1])), 1, (250, 255, 0), 10)
     
-    cv2.putText(image, str(i), cen, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+    cv2.putText(image, str(flag), cen, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (150, 0, 255), 2)
 
     if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
         continue
@@ -169,8 +169,7 @@ for r in results:
                     intersection_y = y1 + ua*(y2-y1)
                     print("j = ", j , "k = ", k)
                     print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
-                    distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5
-                    print('Distance (mm) = ', distance*0.559025768)
+                    
                 else:
                     print("Lines are parallel")
 
@@ -178,7 +177,9 @@ for r in results:
                 cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
                 cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
                 # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                              
+
+            distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5
+            print('Distance (mm) = ', distance/0.559025768)                  
 cv2.imshow('image', image)
 
 cv2.waitKey(0)

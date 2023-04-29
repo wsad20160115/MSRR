@@ -1,8 +1,10 @@
 import socket
 import tkinter as tk
 import cv2
+import threading
 import datetime
 from PIL import Image, ImageTk
+import struct
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
 import tag_intersection # 引用 tag_intersection 用以找出兩 MSRR 之交點 
 
@@ -54,7 +56,7 @@ class App:
         self.input_entry = tk.Entry(master)
         self.input_entry.grid(row=0, column=1)
         
-        # 按鈕
+        # 按鈕設定
         button_width = 9
         button_height = 3
 
@@ -88,12 +90,20 @@ class App:
         self.submit_button.place(x=100, y=590)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
         self.submit_button.place(x=180, y=590)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="WI-FI", command=lambda: self.send_command("WI-FI"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="WI-FI", command = self.send_command)
         self.submit_button.place(x=20, y=660)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="HI_test", command=self.test_function)
         self.submit_button.place(x=100, y=660)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command=lambda: self.send_command("Shutdown"))
         self.submit_button.place(x=180, y=660)
+
+        # 拉桿設定
+        font = ('Courier New', 20, 'bold')
+        self.scale = tk.Scale(
+            label='PWM Pulse Width', font=font, orient=tk.HORIZONTAL, showvalue=True,
+            bg='white', fg='blue', tickinterval=10000, length=1000, width=30,
+            troughcolor='blue', from_ = 0, to = 65535)
+        self.scale.place(x=0, y=750)
         
         # 創建 Scrollbar 控件
         scrollbar = tk.Scrollbar(root)
@@ -155,13 +165,16 @@ class App:
     
     def test_function(self):
         pass
+        #print("Intersection_X = ", intersection_x, "Intersection_Y =", intersection_y)
 
     def toggle_tag_detector(self):
         self.tagcontrol = not self.tagcontrol  
 
     # -------------- ↓ 計算 MSRR 延伸線之交點 ↓ -------------- #
     def intersection(self):
-        tag_detector.Tag.intersection(self)
+        tag_intersection.intersection(self)
+        #print(tag_intersection.intersection.intersection_x)
+        #print('INTERSECTION_X = ', ,'INTERSECTION_Y = ', a )
 
     def clearBox(self): # 清除 Response 訊息框中的所有訊息
         self.message_text.delete("1.0", "end")
@@ -207,9 +220,9 @@ class App:
 
     def send_command(self,value):
         # 取得使用者輸入的指令
-        #command = self.input_entry.get()
+        # command = self.input_entry.get()
         command = value
-           
+        # package = pack
 # ----------------------- ↓ Socket 客戶端 ↓ ----------------------- #
         data='Connect fail!'.encode('utf-8')
         # 連接到TCP服務器
@@ -221,7 +234,7 @@ class App:
 
                 # 傳送指令
                 sock.sendall(command.encode())
-
+                # sock.sendall(command)
                 # 接收回應
                 data = sock.recv(BUFFER_SIZE)
             except Exception as e:
@@ -233,6 +246,22 @@ class App:
         nowmin = str(now.minute)
         nowsec = str(now.second)
         self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+
+    def connect(self):
+
+        def reading_error():
+            pass
+        def send_connect_command():
+            pass
+
+        thread_reading_error = threading.Thread(target=reading_error)
+        thread_send_connect_command = threading.Thread(target=send_connect_command)
+
+        thread_reading_error.start()
+        thread_send_connect_command.start()
+
+        thread_reading_error.join()
+        thread_send_connect_command.join()
 
 # 建立主視窗
 root = tk.Tk()

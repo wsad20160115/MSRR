@@ -1,26 +1,23 @@
 import threading
+import time
 
-class MyThread(threading.Thread):
-    def __init__(self, num):
-        threading.Thread.__init__(self)
-        self.num = num
+def print_numbers():
+    for i in range(1, 6):
+        time.sleep(0.5)
+        print(i)
 
-    def run(self):
-        print("Thread", self.num, "starts")
-        # do something
-        print("Thread", self.num, "ends")
+def print_letters():
+    for letter in ['a', 'b', 'c', 'd', 'e']:
+        time.sleep(0.3)
+        print(letter)
 
-if __name__ == "__main__":
-    thread1 = MyThread(1)
-    thread2 = MyThread(2)
-    thread3 = MyThread(3)
-    
-    thread1.start()
-    thread2.start()
-    thread3.start()
+t1 = threading.Thread(target=print_numbers)
+t2 = threading.Thread(target=print_letters)
 
-    thread1.join()
-    thread2.join()
-    thread3.join()
+t1.start()
+t2.start()
 
-    print("All threads finished")
+t1.join()
+
+
+print("Done!")
