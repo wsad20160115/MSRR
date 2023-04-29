@@ -94,7 +94,7 @@ class App:
         self.submit_button.place(x=180, y=590)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Put\n Intersection", command = self.put_intersection)
         self.submit_button.place(x=20, y=660)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="HI_test", command=self.test_function)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Conn_fcn", command=self.connect_fcn)
         self.submit_button.place(x=100, y=660)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command=lambda: self.send_command("Shutdown"))
         self.submit_button.place(x=180, y=660)
@@ -189,7 +189,7 @@ class App:
     def update_video(self):
         # 從攝影機捕捉一張畫面
         ret, frame = self.cam.read()
-        center = (0, 0)
+    
         # print("type = ", type(frame))
         # try:
         #     if self.tagcontrol:
@@ -198,7 +198,6 @@ class App:
         # except BaseException as e:
         #     print(e)
         
-
         if self.tagcontrol:
             tag_detector.Tag.tag(self, frame) # 使用外部tag.py檔案進行比對
             # print('MID_AD = ', (globals.intersection_x, globals.intersection_y))
@@ -260,13 +259,15 @@ class App:
         nowsec = str(now.second)
         self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
 
-    def connect(self):
+    def connect_fcn(self):
 
         def reading_error():
-            pass
+            global error
+            error = ((globals.intersection_x - globals.mid_ad_x)**2 + (globals.intersection_y-globals.mid_ad_y)**2)**0.5
+            print('Error = ', error)
 
         def send_connect_command():
-            pass
+            print('This is error + 100 :', error+100)
 
         thread_reading_error = threading.Thread(target=reading_error)
         thread_send_connect_command = threading.Thread(target=send_connect_command)

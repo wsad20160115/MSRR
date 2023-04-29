@@ -16,7 +16,10 @@ options = apriltag.Detector(families='tag36h11')  # windows
 class Tag():
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
     def tag(self, image):
-        
+
+        quadrant = 0
+
+        #image = cv2.flip(image, 1)
         # 將彩色影像轉換為灰度影像
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
@@ -54,11 +57,13 @@ class Tag():
 
             # 計算 AprilTag 的旋轉角度，並考慮角度為90°或270°而產生斜率為 ∞ 之情形
             slope = 0
-            
-            if c[0] - b[0] == 0:
+            special_factor = 0
+            if c[0] - b[0] == 0 and c[1] < b[1]:
                 angle = 90
+                special_factor = 1
             elif b[1] < c[1] and c[0] - b[0] == 0:
                 angle = 270
+                special_factor = 1
             else:
                 slope = (c[1]-b[1])/(c[0]-b[0])
 
@@ -88,30 +93,40 @@ class Tag():
             # ↓ 設定延伸線的長度係數 ↓ #
             extend_factor = 130
             com_angle = 0
+
+            if special_factor == 0:
     # ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
-            if b[0] < c[0] and b[1] < c[1]:
-                flag = 1     
-                com_angle = angle+270
-                end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-                end_ad = (int(globals.mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                if b[0] < c[0] and b[1] < c[1]:
+                    quadrant = 4
+                    angle = math.degrees(math.atan(slope))
+                    angle = round(angle, 2)   
+                    com_angle = abs(angle)+270
+                    end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+                    end_ad = (int(globals.mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
 
-            elif b[0] < c[0] and b[1] > c[1]:
-                flag = 2             
-                com_angle = abs(angle)
-                end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-                end_ad = (int(globals.mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                elif b[0] < c[0] and b[1] > c[1]:
+                    quadrant = 1
+                    angle = math.degrees(math.atan(slope))
+                    angle = round(angle, 2)
+                    com_angle = abs(angle)
+                    end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+                    end_ad = (int(globals.mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                
+                elif b[0] > c[0] and b[1] > c[1]:
+                    quadrant = 2
+                    angle = math.degrees(math.atan(slope))
+                    angle = round(angle, 2)             
+                    com_angle = angle+90
+                    end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                    end_ad = (int(globals.mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
 
-            elif b[0] > c[0] and b[1] > c[1]:
-                flag = 3                      
-                com_angle = angle+90
-                end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-                end_ad = (int(globals.mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-
-            elif b[0] > c[0] and b[1] < c[1]:
-                flag = 4             
-                com_angle = abs(angle)+180
-                end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-                end_ad = (int(globals.mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))  
+                else :
+                    quadrant = 3
+                    angle = math.degrees(math.atan(slope))
+                    angle = round(angle, 2)       
+                    com_angle = abs(angle)+180
+                    end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                    end_ad = (int(globals.mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(globals.mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))  
 
             END_AD_POSITIONS.append(end_ad)
             END_BC_POSITIONS.append(end_bc)
@@ -127,6 +142,7 @@ class Tag():
             # ↓ 標註物件之旋轉角度 ↓ #
             cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
             cv2.putText(image, "C", (mid_ad[0]-10, mid_ad[1]-10), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
+            cv2.putText(image, str(quadrant), (mid_ad[0]-10, mid_ad[1]+20), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
 
         return image
        

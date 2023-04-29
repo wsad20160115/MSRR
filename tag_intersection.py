@@ -45,7 +45,8 @@ def intersection(self):
     j = 0
     k = 1
 
- 
+    distance = 0
+
     for r in results:
         
         i = i + 1
