@@ -7,8 +7,9 @@ from PIL import Image, ImageTk
 import struct
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
 import tag_intersection # 引用 tag_intersection 用以找出兩 MSRR 之交點 
-import test
 import globals
+
+# version back
 #------------- ↓ 建立TCP客戶端 ↓ -------------
 HOST = '0.0.0.0'
 PORT = 9999
@@ -98,7 +99,7 @@ class App:
         self.submit_button.place(x=100, y=660)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command=lambda: self.send_command("Shutdown"))
         self.submit_button.place(x=180, y=660)
-
+        
         # 拉桿設定
         font = ('Courier New', 20, 'bold')
         self.scale = tk.Scale(
