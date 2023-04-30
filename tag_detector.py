@@ -1,7 +1,7 @@
 import cv2
 import pupil_apriltags as apriltag
 import math
-import globals
+
 
 # 設定 END_BC 與 END_AD 的 list
 END_BC_POSITIONS = []
@@ -98,37 +98,33 @@ class Tag():
 
             if special_factor == 0:
     # ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
-                if b[0] < c[0] and b[1] < c[1]:
-                    quadrant = 4
-                    angle = math.degrees(math.atan(slope))
-                    angle = round(angle, 2)   
-                    com_angle = abs(angle)+270
+                if a[0] < b[0] and a[1] > b[1]: # 當線段 AB 在 第 I 象限之情況
+                    quadrant = 1
+                    com_angle = abs(angle)
+                    # 當線段 AB 為第 I 象限情況時，BC線段會在第 II 象限
+                    end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                    end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+
+                elif a[0] > b[0] and a[1] > b[1]: # 當線段 AB 在 第 II 象限之情況
+                    quadrant = 2         
+                    com_angle = (90-angle)+90
+                    # 當線段 AB 為第 II 象限情況時，BC線段會在第 III 象限
+                    end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                    end_ad = (int( mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+
+                elif a[0] > b[0] and a[1] < b[1] : # 當線段 AB 在 第 III 象限之情況
+                    quadrant = 3     
+                    com_angle = abs(angle)+180
+                    # 當線段 AB 為第 III 象限情況時，BC線段會在第 IV 象限
                     end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
                     end_ad = (int( mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
 
-                elif b[0] < c[0] and b[1] > c[1]:
-                    quadrant = 1
-                    angle = math.degrees(math.atan(slope))
-                    angle = round(angle, 2)
-                    com_angle = abs(angle)
+                elif a[0] < b[0] and a[1] < b[1]: # 當線段 AB 在 第 IV 象限之情況
+                    quadrant = 4
+                    com_angle = (90-angle)+270
+                    # 當線段 AB 為第 IV 象限情況時，BC線段會在第 I 象限  
                     end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-                    end_ad = (int( mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-                
-                elif b[0] > c[0] and b[1] > c[1]:
-                    quadrant = 2
-                    angle = math.degrees(math.atan(slope))
-                    angle = round(angle, 2)             
-                    com_angle = angle+90
-                    end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-                    end_ad = (int( mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-
-                else :
-                    quadrant = 3
-                    angle = math.degrees(math.atan(slope))
-                    angle = round(angle, 2)       
-                    com_angle = abs(angle)+180
-                    end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-                    end_ad = (int( mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))  
+                    end_ad = (int( mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180))) 
 
             END_AD_POSITIONS.append(end_ad)
             END_BC_POSITIONS.append(end_bc)
@@ -148,6 +144,6 @@ class Tag():
 
         return mid_ad
     
-    def get_MID(self):
-        return self.mid_ad
+    # def get_MID(self):
+    #     return self.mid_ad
        
