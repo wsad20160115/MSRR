@@ -17,8 +17,12 @@ class Tag():
 
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
     def tag(self, image):
-
+        
+        global mid_ad, com_angle
         quadrant = 0
+        com_angle = 0
+        slope = 0
+        special_factor = False # 判斷 MSRR 是否為特殊角度如:90°、270°
 
         #image = cv2.flip(image, 1)
         # 將彩色影像轉換為灰度影像
@@ -52,24 +56,25 @@ class Tag():
             # tagFamily = r.tag_family.decode("utf-8")
             # cv2.putText(image, r.tag_Family, (a[0], a[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             # cv2.putText(image, 'a', (a[0]-10, a[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-            cv2.putText(image, 'b', (b[0]-10, b[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-            cv2.putText(image, 'c', (c[0]-10, c[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0 , 255), 2)
+            # cv2.putText(image, 'b', (b[0]-10, b[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+            # cv2.putText(image, 'c', (c[0]-10, c[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0 , 255), 2)
             #cv2.putText(image, 'd', (d[0]-10, d[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
             # 計算 AprilTag 的旋轉角度，並考慮角度為90°或270°而產生斜率為 ∞ 之情形
-            slope = 0
-            special_factor = 0
-            if c[0] - b[0] == 0 and c[1] < b[1]:
+
+            if b[0] - a[0] == 0 and b[1] < a[1]:
                 angle = 90
-                special_factor = 1
-            elif b[1] < c[1] and c[0] - b[0] == 0:
+                special_factor = True
+
+            elif a[1] < b[1] and b[0] - a[0] == 0:
                 angle = 270
-                special_factor = 1
+                special_factor = True
+
             else:
-                slope = (c[1]-b[1])/(c[0]-b[0])
+                slope = (b[1]-a[1])/(b[0]-a[0])
 
             angle = math.degrees(math.atan(slope))
-            angle = round(angle, 2)        
+            angle = round(angle, 2)             
             # print('Slope =', slope)
 
             # ↓ 找出線段中點 ↓ #
@@ -78,7 +83,6 @@ class Tag():
             mid_ad_x = int((a[0]+d[0])/2)
             mid_ad_y = int((a[1]+d[1])/2)
 
-            global mid_ad
             mid_ad = (mid_ad_x, mid_ad_y)
             mid_bc = (mid_bc_x, mid_bc_y)
             end_ad = (0, 0)
@@ -94,9 +98,8 @@ class Tag():
 
             # ↓ 設定延伸線的長度係數 ↓ #
             extend_factor = 130
-            com_angle = 0
 
-            if special_factor == 0:
+            if special_factor == False:
     # ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
                 if a[0] < b[0] and a[1] > b[1]: # 當線段 AB 在 第 I 象限之情況
                     quadrant = 1
@@ -121,7 +124,7 @@ class Tag():
 
                 elif a[0] < b[0] and a[1] < b[1]: # 當線段 AB 在 第 IV 象限之情況
                     quadrant = 4
-                    com_angle = (90-angle)+270
+                    com_angle = (90-abs(angle))+270
                     # 當線段 AB 為第 IV 象限情況時，BC線段會在第 I 象限  
                     end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
                     end_ad = (int( mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180))) 
@@ -134,15 +137,16 @@ class Tag():
 
             # ↓ 標註線段中點與中心點 ↓ #
             # cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (0, 0, 255), 5)
-            cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (130, 180, 255), 3)
+            cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (130, 180, 255), 4)
             # cv2.circle(image, (cX, cY), 3, (0, 0, 255), -1)
 
             # ↓ 標註物件之旋轉角度 ↓ #
             cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-            cv2.putText(image, "C", (mid_ad[0]-10, mid_ad[1]-10), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
-            cv2.putText(image, str(quadrant), (mid_ad[0]-10, mid_ad[1]+20), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
+            #cv2.putText(image, "C", (mid_ad[0]-10, mid_ad[1]-10), cv2.FONT_ITALIC, 0.7, (150, 150, 255), 2)
+            cv2.putText(image, str(quadrant), (cen[0], cen[1]), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
+            # print('COM_ANGLE = ', com_angle)
 
-        return mid_ad
+        return mid_ad, com_angle
     
     # def get_MID(self):
     #     return self.mid_ad

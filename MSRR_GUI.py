@@ -3,13 +3,15 @@ import tkinter as tk
 import cv2
 import threading
 import datetime
+import time
 from PIL import Image, ImageTk
 import struct
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
 import tag_intersection # 引用 tag_intersection 用以找出兩 MSRR 之交點 
+import sys
 
+sys.setrecursionlimit(100000)
 
-# version back
 #------------- ↓ 建立TCP客戶端 ↓ -------------
 HOST = '0.0.0.0'
 PORT = 9999
@@ -24,17 +26,20 @@ END_BC_POSITIONS = []
 
 class App:
 
-    global classTag, MIDOFMSRR
-    MIDOFMSRR = (0.0, 0.0)
-
+    global classTag, MIDOFMSRR, ANGLEOFMSRR, tagdetect
+    # MIDOFMSRR = (0.0, 0.0)
+    # ANGLEOFMSRR = 0.0
     classTag = tag_detector.Tag()
 
     # 設定AprilTag檢測器啟用與關閉
-    tagcontrol = False
+    
     tagintersection = False
     putintersection = False
 
     def __init__(self, master):
+
+        self.tagdetect = False
+
         self.master = master
         master.title("ACTL MSRR")
         master.iconbitmap('./ACTL72.ico')
@@ -176,9 +181,7 @@ class App:
 
     def toggle_tag_detector(self):
         
-        self.tagcontrol = not self.tagcontrol
-
-        self.cenofmsrr = self.classTag.mid_ad
+        self. tagdetect = not self. tagdetect
 
     def put_intersection(self):
         self.putintersection = not self.putintersection
@@ -199,18 +202,17 @@ class App:
     
         # print("type = ", type(frame))
         # try:
-        #     if self.tagcontrol:
+        #     if self. tagdetect:
         #         tag.tag(self, frame) # 使用外部tag.py檔案進行比對
         #         # self.tag(frame)
         # except BaseException as e:
         #     print(e)
         
-        if self.tagcontrol:
-            self.MIDOFMSRR = classTag.tag(frame) # 使用外部tag.py檔案進行比對
-            # print('MID_AD = ', (globals.intersection_x, globals.intersection_y))
+        if self.tagdetect:
+            self.MIDOFMSRR, self.ANGLEOFMSRR = classTag.tag(frame) # 使用外部tag.py檔案進行比對
             # self.tag(frame)
-            # print('MID_AD_X = ', tag_detector.mid_ad_x, 'MID_AD_Y = ', tag_detector.mid_ad_y)\
-            print('MID_AD = ', self.MIDOFMSRR)
+            # print('MID_AD = ', self.MIDOFMSRR)
+            # print('ANGLE OF MSRR : ', self.ANGLEOFMSRR)
            
         if self.putintersection:
            cv2.circle(frame, (int(tag_intersection.intersection_x), int(tag_intersection.intersection_y)), 1, (0, 0, 255), 4)
@@ -233,8 +235,9 @@ class App:
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
 
     def snapshot(self):
+
         ret, frame = self.cam.read()
-        # frame_flip = cv2.flip(frame, 1)
+
         if ret:
             cv2.imwrite("./image/snapshot.jpg", frame)
 
@@ -267,27 +270,46 @@ class App:
         nowsec = str(now.second)
         self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
 
-    def connect_fcn(self):
-        global error
-        def reading_error():
+    def connect_fcn(self): # 啟動連結之功能
+
+        global position_error
+
+        def reading_error(): # 讀取主動之 MSRR 距離目標 Intersection Point 之位置差
             
-            error = ((tag_intersection.intersection_x - tag_detector.mid_ad_x)**2 + (tag_intersection.intersection_y-tag_detector.mid_ad_y)**2)**0.5
-            print('Error = ', error)
+            self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
+            print('Position Error : ', self.position_error)
+            time.sleep(0.05)
+            if self.tagdetect == True:
+                reading_error()
+        	
+        def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
+            kp = 10
+            u = kp * self.position_error
+            print('Control input (u) = ', u)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # try:
+            #     print(HOST)
+            #     sock.settimeout(0.5)
+            #     sock.connect((HOST, PORT))
 
-        def send_connect_command():
-            
-            print('This is error + 100 :', error+100)
+            #     # 傳送指令
+            #     sock.sendall(u.encode())
+            #     # sock.sendall(command)
+            #     # 接收回應
+            #     data = sock.recv(BUFFER_SIZE)
+            # except Exception as e:
+            #     print(e)
 
-        thread_reading_error = threading.Thread(target=reading_error)
-        thread_send_connect_command = threading.Thread(target=send_connect_command)
-        # thread_update_video = threading.Thread(target=self.update_video)
+            time.sleep(0.05)
+            if self.tagdetect == True:
+                send_connect_command()
 
-        thread_reading_error.start()
-        thread_send_connect_command.start()
+        thread_reading_error = threading.Thread(target = reading_error) #設定 reading_error 為 Thread
+        thread_send_connect_command = threading.Thread(target = send_connect_command) #設定 send_connect_command 為 Thread
 
-        thread_reading_error.join()
-        thread_send_connect_command.join()
-
+        thread_reading_error.start() # 啟動 reading_error 之 Thread
+        thread_send_connect_command.start() # 啟動 send_connect_command 之 Thread
+       
 # 建立主視窗
 root = tk.Tk()
 #設定程式啟動時的視窗大小
