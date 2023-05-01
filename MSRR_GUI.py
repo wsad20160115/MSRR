@@ -18,7 +18,7 @@ PORT = 9999
 BUFFER_SIZE = 1024
 
 # 設定視窗初始大小
-win_width = 1600
+win_width = 1800
 win_height = 900
 
 END_AD_POSITIONS = []
@@ -58,7 +58,7 @@ class App:
 
         # 設定畫面顯示區域
         self.video_area = tk.Label(master)
-        self.video_area.place(x=300, y=0)
+        self.video_area.place(x=400, y=0)
 
         # 開始更新畫面
         self.update_video()
@@ -70,64 +70,77 @@ class App:
         self.input_entry.grid(row=0, column=1)
         
         # 按鈕設定
-        button_width = 9
+        button_width = 12
         button_height = 3
 
+        # ----------- ROW
+        # | column
+
+        row1 = 25
+        row2 = 155
+        row3 = 285
+        col1 = 400
+        col2 = 470
+        col3 = 540
+        col4 = 610
+        col5 = 680 
+
         self.submit_button = tk.Button(master, text="Clear Message", command=self.clearBox)
-        self.submit_button.place(x=180, y=40)
-        self.submit_button = tk.Button(master, text="LED On", command=lambda: self.send_command("LED ON"))
+        self.submit_button.place(x=200, y=40)
+        self.submit_button = tk.Button(master, text="LED On", command=lambda: self.send_command("__LED ON"))
         self.submit_button.place(x=10, y=40)
-        self.submit_button = tk.Button(master, text="LED OFF", command=lambda: self.send_command("LED OFF"))
+        self.submit_button = tk.Button(master, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
         self.submit_button.place(x=80, y=40)
+        # ----------------------------------------------------- 主要 Button 區設定 ----------------------------------------------------- #
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("Connect"))
-        self.submit_button.place(x=20, y=380)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Forward", command=lambda: self.send_command("Forward"))
-        self.submit_button.place(x=100, y=380)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Disconnect", command=lambda: self.send_command("Disconnect"))
-        self.submit_button.place(x=180, y=380)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Left", command=lambda: self.send_command("Left"))
-        self.submit_button.place(x=20, y=450)
-        self.submit_button = tk.Button(master, width = button_width, height= button_height, text="Stop", command=lambda: self.send_command("Stop"))
-        self.submit_button.place(x=100, y=450)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Right", command=lambda: self.send_command("Right"))
-        self.submit_button.place(x=180, y=450)        
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LiftUP", command=lambda: self.send_command("LiftUP"))
-        self.submit_button.place(x=20, y=520)
+        self.submit_button.place(x=row1, y=col1)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Forward", command=lambda: self.send_command("_Forward"))
+        self.submit_button.place(x=row2, y=col1)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Disconnect", command=lambda: self.send_command("Dconnect"))
+        self.submit_button.place(x=row3, y=col1)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Left", command=lambda: self.send_command("____Left"))
+        self.submit_button.place(x=row1, y=col2)
+        self.submit_button = tk.Button(master, width = button_width, height= button_height, text="Stop", command=lambda: self.send_command("____Stop"))
+        self.submit_button.place(x=row2, y=col2)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Right", command=lambda: self.send_command("___Right"))
+        self.submit_button.place(x=row3, y=col2)        
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LiftUP", command=lambda: self.send_command("__LiftUP"))
+        self.submit_button.place(x=row1, y=col3)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Backward", command=lambda: self.send_command("Backward"))
-        self.submit_button.place(x=100, y=520)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LayDown", command=lambda: self.send_command("LayDown"))
-        self.submit_button.place(x=180, y=520)
+        self.submit_button.place(x=row2, y=col3)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LayDown", command=lambda: self.send_command("_LayDown"))
+        self.submit_button.place(x=row3, y=col3)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Snapshot", command=self.snapshot)
-        self.submit_button.place(x=20, y=590)
+        self.submit_button.place(x=row1, y=col4)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Tag \n Detector", command=self.toggle_tag_detector)
-        self.submit_button.place(x=100, y=590)
+        self.submit_button.place(x=row2, y=col4)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
-        self.submit_button.place(x=180, y=590)
+        self.submit_button.place(x=row3, y=col4)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Put\n Intersection", command = self.put_intersection)
-        self.submit_button.place(x=20, y=660)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Conn_fcn", command=self.connect_fcn)
-        self.submit_button.place(x=100, y=660)
+        self.submit_button.place(x=row1, y=col5)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect\n Function", command=self.connect_fcn)
+        self.submit_button.place(x=row2, y=col5)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command=lambda: self.send_command("Shutdown"))
-        self.submit_button.place(x=180, y=660)
+        self.submit_button.place(x=row3, y=col5)
         
         # 拉桿設定
         font = ('Courier New', 20, 'bold')
         self.scale = tk.Scale(
             label='PWM Pulse Width', font=font, orient=tk.HORIZONTAL, showvalue=True,
-            bg='white', fg='blue', tickinterval=10000, length=1000, width=30,
+            bg='white', fg='red', tickinterval=10000, length=1000, width=row1,
             troughcolor='blue', from_ = 0, to = 65535)
-        self.scale.place(x=0, y=750)
+        self.scale.place(x=300, y=750)
         
         # 創建 Scrollbar 控件
         scrollbar = tk.Scrollbar(root)
         
         # 訊息框
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
-        self.message_label.place(x=10, y=80)
-        self.message_text = tk.Text(master, width=40, height=12)        
+        self.message_label.place(x=25, y=80)
+        self.message_text = tk.Text(master, width=50, height=15)        
         self.message_text.config(yscrollcommand=scrollbar.set)
         scrollbar.config()
-        self.message_text.place(x=10, y=110)
+        self.message_text.place(x=25, y=110)
         
         options1 = [ #設定被連結開發板之IP
             "Choose First MSRR",
@@ -161,13 +174,13 @@ class App:
         var = tk.StringVar(master)
         var.set(options1[0])
         self.option_menu = tk.OptionMenu(master, var, *options1)
-        self.option_menu.place(x=40, y=280)
+        self.option_menu.place(x=110, y=320)
         self.option_menu.config(width=20,height=1)
 
         var = tk.StringVar(master)
         var.set(options2[0])
         self.option_menu = tk.OptionMenu(master, var, *options2)
-        self.option_menu.place(x=40, y=325)
+        self.option_menu.place(x=110, y=360)
         self.option_menu.config(width=20,height=1)
         
         def show(*e):
@@ -241,28 +254,46 @@ class App:
         if ret:
             cv2.imwrite("./image/snapshot.jpg", frame)
 
-    def send_command(self,value):
+    def send_command(self,command):
         # 取得使用者輸入的指令
         # command = self.input_entry.get()
-        command = value
+        # command = value
         # package = pack
 # ----------------------- ↓ Socket 客戶端 ↓ ----------------------- #
         data='Connect fail!'.encode('utf-8')
         # 連接到TCP服務器
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            try:
-                print(HOST)
-                sock.settimeout(0.5)
-                sock.connect((HOST, PORT))
+        # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        #     try:
+        #         # print(HOST)
+        #         sock.settimeout(0.5)
+        #         sock.connect((HOST, PORT))
 
-                # 傳送指令
-                sock.sendall(command.encode())
-                # sock.sendall(command)
-                # 接收回應
-                data = sock.recv(BUFFER_SIZE)
-            except Exception as e:
-                print(e)
+        #         # 傳送指令
+        #         sock.sendall(command.encode())
+        #         # sock.sendall(command)
+        #         # 接收回應
+        #         data = sock.recv(BUFFER_SIZE)
+        #     except Exception as e:
+        #         print(e)
+        kp = 10
+        u = self.scale.get()
+        
+        movecommand = command
+        pack_data = struct.pack('i8s', u, movecommand.encode())
 
+        # print('Control input (u) = ', u)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            sock.settimeout(0.3)
+            sock.connect((HOST, PORT))
+
+            # 傳送指令
+            sock.sendall(pack_data)
+            # sock.sendall(command)
+            # 接收回應
+            data = sock.recv(BUFFER_SIZE)
+        except Exception as e:
+            print(e)
         # 將回應顯示在訊息框中
         now = datetime.datetime.now()
         nowhour = str(now.hour)
@@ -271,44 +302,59 @@ class App:
         self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
 
     def connect_fcn(self): # 啟動連結之功能
-
+        self.data='Connect fail!'.encode('utf-8')
         global position_error
 
         def reading_error(): # 讀取主動之 MSRR 距離目標 Intersection Point 之位置差
             
             self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
             print('Position Error : ', self.position_error)
-            time.sleep(0.05)
+            time.sleep(1)
             if self.tagdetect == True:
                 reading_error()
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
-            kp = 10
-            u = kp * self.position_error
-            print('Control input (u) = ', u)
+            kp = 3
+            u = 1
+            #u = kp * self.position_error
+            u = self.position_error * kp + u
+            print('Position Error = ', self.position_error)
+            print('Control signal (u) : ', u)
+            movecommand = '___HELLO'
+            pack_data = struct.pack('i8s', int(u), movecommand.encode())
+
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # try:
-            #     print(HOST)
-            #     sock.settimeout(0.5)
-            #     sock.connect((HOST, PORT))
 
-            #     # 傳送指令
-            #     sock.sendall(u.encode())
-            #     # sock.sendall(command)
-            #     # 接收回應
-            #     data = sock.recv(BUFFER_SIZE)
-            # except Exception as e:
-            #     print(e)
+            try:
+                sock.settimeout(1)
+                sock.connect((HOST, PORT))
 
-            time.sleep(0.05)
+                # 傳送指令
+                sock.sendall(pack_data)
+                # sock.sendall(command)
+                # 接收回應
+                self.data = sock.recv(BUFFER_SIZE)
+            except Exception as e:
+                print(e)
+
+            time.sleep(1)
             if self.tagdetect == True:
                 send_connect_command()
 
+            # 將回應顯示在訊息框中
+            now = datetime.datetime.now()
+            nowhour = str(now.hour)
+            nowmin = str(now.minute)
+            nowsec = str(now.second)
+            self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ self.data.decode() + "\n")
+
+        # ---------------------------- 執行緒之設定與啟動 ---------------------------- #
         thread_reading_error = threading.Thread(target = reading_error) #設定 reading_error 為 Thread
         thread_send_connect_command = threading.Thread(target = send_connect_command) #設定 send_connect_command 為 Thread
 
         thread_reading_error.start() # 啟動 reading_error 之 Thread
         thread_send_connect_command.start() # 啟動 send_connect_command 之 Thread
+
        
 # 建立主視窗
 root = tk.Tk()
@@ -320,4 +366,5 @@ y = int((screen_height - win_height) / 2)
 root.geometry(f"{win_width}x{win_height}+{x}+{y-30}") #設定視窗初始位置
 
 app = App(root)
+#root.configure(bg='gray')
 root.mainloop()
