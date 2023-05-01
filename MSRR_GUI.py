@@ -255,6 +255,7 @@ class App:
             cv2.imwrite("./image/snapshot.jpg", frame)
 
     def send_command(self,command):
+
         # 取得使用者輸入的指令
         # command = self.input_entry.get()
         # command = value
@@ -300,6 +301,7 @@ class App:
         nowmin = str(now.minute)
         nowsec = str(now.second)
         self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+        time.sleep(1)
 
     def connect_fcn(self): # 啟動連結之功能
         self.data='Connect fail!'.encode('utf-8')
@@ -315,12 +317,14 @@ class App:
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
             kp = 3
-            u = 1
+            u = 0
             #u = kp * self.position_error
-            u = self.position_error * kp + u
-            print('Position Error = ', self.position_error)
-            print('Control signal (u) : ', u)
-            movecommand = '___HELLO'
+            u = self.position_error * kp
+            # print('Position Error = ', self.position_error)
+            # print('Control signal (u) : ', u)
+            # print(self.scale.get())
+
+            movecommand = '_Forward'
             pack_data = struct.pack('i8s', int(u), movecommand.encode())
 
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
