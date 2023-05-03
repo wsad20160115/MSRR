@@ -18,12 +18,13 @@ class Tag():
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
     def tag(self, image):
         
-        global mid_ad, com_angle
+        global mid_ad, com_angle, angle_of_msrr
         quadrant = 0
         com_angle = 0
         slope = 0
+        angle_of_msrr = []
         special_factor = False # 判斷 MSRR 是否為特殊角度如:90°、270°
-
+        bool_angle = False
         #image = cv2.flip(image, 1)
         # 將彩色影像轉換為灰度影像
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -132,8 +133,21 @@ class Tag():
             END_AD_POSITIONS.append(end_ad)
             END_BC_POSITIONS.append(end_bc)
 
+            angle_of_msrr.append(com_angle)
+
+            if len(angle_of_msrr) == 2:
+                
+                error_of_angle = abs(angle_of_msrr[0]-angle_of_msrr[1])
+                bool_angle = True
+                
+            if len(angle_of_msrr) == 3:
+                angle_of_msrr[0] = angle_of_msrr[2]
+
+            if bool_angle == True:
+                cv2.putText(image, str(error_of_angle), (300, 300), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
             # ↓ 繪製延伸線段中點連線 ↓ #
-            cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
+
+            cv2.line(image, end_ad, end_bc, (255, 50, 0), 2, lineType=cv2.LINE_8)
 
             # ↓ 標註線段中點與中心點 ↓ #
             # cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (0, 0, 255), 5)
@@ -141,11 +155,10 @@ class Tag():
             # cv2.circle(image, (cX, cY), 3, (0, 0, 255), -1)
 
             # ↓ 標註物件之旋轉角度 ↓ #
-            cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+            cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_COMPLEX, 0.8, (180, 255, 0), 2)
             #cv2.putText(image, "C", (mid_ad[0]-10, mid_ad[1]-10), cv2.FONT_ITALIC, 0.7, (150, 150, 255), 2)
             cv2.putText(image, str(quadrant), (cen[0], cen[1]), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
-            # print('COM_ANGLE = ', com_angle)
-
+           
         return mid_ad, com_angle
     
     # def get_MID(self):

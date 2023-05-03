@@ -80,11 +80,11 @@ class App:
         row1 = 25
         row2 = 155
         row3 = 285
-        col1 = 400
-        col2 = 470
-        col3 = 540
-        col4 = 610
-        col5 = 680 
+        col1 = 380
+        col2 = 450
+        col3 = 520
+        col4 = 590
+        col5 = 660 
 
         self.submit_button = tk.Button(master, text="Clear Message", command=self.clearBox)
         self.submit_button.place(x=200, y=40)
@@ -124,30 +124,22 @@ class App:
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Test", command = self.test_function)
         self.submit_button.place(x=row3, y=col5)
         
-        # PWM 拉桿設定
-        font = ('Courier New', 16, 'bold')
-        self.scale = tk.Scale(
-            label='PWM value', font=font, orient=tk.HORIZONTAL, showvalue=True,
-            bg='white', fg='gray', tickinterval=10000, length=1000, width=row1,
-            troughcolor='black', from_ = 0, to = 65535)
-        self.scale.place(x=300, y=750)
-        
         # 創建 Scrollbar 控件
         self.scrollbar = tk.Scrollbar(master)
         
-
         # 訊息框
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
         self.message_label.place(x=25, y=80)
-        self.message_text = tk.Text(master, width=50, height=15, yscrollcommand=self.scrollbar.set)
-        
 
-        # self.message_text.config(yscrollcommand=scrollbar.set)
-        # scrollbar.config()
+        self.message_text = tk.Text(master, width=50, height=15, yscrollcommand=self.scrollbar.set)
         self.message_text.place(x=25, y=110)
-        
-        options1 = [ #設定被連結開發板之IP
-            "Choose First MSRR",
+
+        self.date_text = datetime.date.today()
+        self.label_date = tk.Label(self.master, text=str(self.date_text), font=('Arial', '14'))
+        self.label_date.place(x=275, y=80)
+
+        options1 = [ #設定連結開發板之IP
+            "Master MSRR",
             "192.168.50.14",
             "192.168.50.55",
             "192.168.50.60",
@@ -159,33 +151,20 @@ class App:
             "192.168.50.234",       
             "192.168.50.239"
         ]
-
-        options2 = [ #設定連結開發板之IP
-            "Choose Second MSRR",
-            "192.168.50.14",
-            "192.168.50.55",
-            "192.168.50.60",
-            "192.168.50.142",
-            "192.168.50.156", 
-            "192.168.50.176",
-            "192.168.50.208",           
-            "192.168.50.220",
-            "192.168.50.234",       
-            "192.168.50.239",
-            "192.168.0.101"
-        ]
         
         var = tk.StringVar(master)
         var.set(options1[0])
         self.option_menu = tk.OptionMenu(master, var, *options1)
         self.option_menu.place(x=110, y=320)
-        self.option_menu.config(width=20,height=1)
+        self.option_menu.config(width=20,height=2 )
 
-        var = tk.StringVar(master)
-        var.set(options2[3])
-        self.option_menu = tk.OptionMenu(master, var, *options2)
-        self.option_menu.place(x=110, y=360)
-        self.option_menu.config(width=20,height=1)
+        # PWM 拉桿設定
+        font = ('Courier New', 16, 'bold')
+        self.scale = tk.Scale(
+            label='PWM value', font=font, orient=tk.HORIZONTAL, showvalue=True,
+            bg='white', fg='gray', tickinterval=10000, length=1000, width=row1,
+            troughcolor='black', from_ = 0, to = 65535)
+        self.scale.place(x=270, y=750)
         
         def show(*e):
             global HOST
@@ -217,6 +196,7 @@ class App:
     
     #------------------ ↓ 顯示影像 ↓ ------------------#       
     def update_video(self):
+
         # 從攝影機捕捉一張畫面
         ret, frame = self.cam.read()
 
@@ -294,33 +274,69 @@ class App:
         self.assemble_bool = not self.assemble_bool
 
         def reading_error(): # 讀取主動之 MSRR 距離目標 Intersection Point 之位置差
-
+            
             self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
             print('Position Error : ', self.position_error)
-            time.sleep(0.5)
-
+            time.sleep(0.2)
+            
+            thread_send_connect_command.join()
+            
             if self.assemble_bool:
-                reading_error()
+               send_connect_command()
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
             
-            kp = 10 # P 參數設定
+            step = 0
+
+            kp = 0.0104 # P 參數設定
 
             self.movecommand = '____Stop'
-            u = int(self.position_error * kp)
 
-            if self.test:
-                self.movecommand = '_Forward'
-            else:
-                self.movecommand = '____Stop'
+            u = int(3000/(self.position_error * kp))
+
+            if u >= 65535:
+                u = 65535
+
+            print('Error : ', self.position_error, 'U : ', u )
+
+            if step == 0:
+                # Step.1 判斷 Intersection Point 位置決定 MSRR 要執行 Forward 或是 Backward 之動作
+                if tag_intersection.intersection_x > self.MIDOFMSRR[0] and tag_intersection.intersection_y > self.MIDOFMSRR[1] and (self.ANGLEOFMSRR > 270 or self.ANGLEOFMSRR < 360):
+                    self.movecommand = '_Forward'
+                elif tag_intersection.intersection_x > self.MIDOFMSRR[0] and tag_intersection.intersection_y > self.MIDOFMSRR[1] and (self.ANGLEOFMSRR > 90 or self.ANGLEOFMSRR < 180):
+                    self.movecommand = 'Backward'
+                elif tag_intersection.intersection_x < self.MIDOFMSRR[0] and tag_intersection.intersection_y > self.MIDOFMSRR[1] and (self.ANGLEOFMSRR > 180 or self.ANGLEOFMSRR < 270):
+                    self.movecommand = '_Forward'
+                elif tag_intersection.intersection_x < self.MIDOFMSRR[0] and tag_intersection.intersection_y > self.MIDOFMSRR[1] and (self.ANGLEOFMSRR > 0 or self.ANGLEOFMSRR < 90):
+                    self.movecommand = 'Backward'
+                elif tag_intersection.intersection_x < self.MIDOFMSRR[0] and tag_intersection.intersection_y < self.MIDOFMSRR[1] and (self.ANGLEOFMSRR > 90 or self.ANGLEOFMSRR < 180):
+                    self.movecommand = '_Forward'
+                elif tag_intersection.intersection_x < self.MIDOFMSRR[0] and tag_intersection.intersection_y < self.MIDOFMSRR[1] and (self.ANGLEOFMSRR > 270 or self.ANGLEOFMSRR < 360):
+                    self.movecommand = 'Backward'
+                elif tag_intersection.intersection_x > self.MIDOFMSRR[0] and tag_intersection.intersection_y < self.MIDOFMSRR[1] and (self.ANGLEOFMSRR > 0 or self.ANGLEOFMSRR < 90):
+                    self.movecommand = '_Forward'
+                elif tag_intersection.intersection_x > self.MIDOFMSRR[0] and tag_intersection.intersection_y < self.MIDOFMSRR[1] and (self.ANGLEOFMSRR > 180 or self.ANGLEOFMSRR < 270):
+                    self.movecommand = 'Backward'
+
+                if self.position_error <= 5:
+                    step = 1
+
+            if step == 1:        
+                pass
+                
+            if step == 2:
+                pass
+            if step == 3:
+                self.movecommand = 'Connect'
+                u = 0
 
             # 執行發送命令之 function
             self.command_of_assemble(self.movecommand, u)
 
-            time.sleep(0.5)
+            time.sleep(0.2)
 
             if self.assemble_bool:
-                send_connect_command()
+                reading_error()
 
         # ---------------------------- 執行緒之設定與啟動 ---------------------------- #
         thread_reading_error = threading.Thread(target = reading_error) #設定 reading_error 為 Thread
@@ -345,13 +361,14 @@ class App:
 
             # 傳送指令
             sock.sendall(pack_data)
-            
+            sock.settimeout(0.3)
             # 接收回應
             data = sock.recv(BUFFER_SIZE)
+            
         except Exception as e:
             print(e)
 
-        # 將回應顯示在訊息框中5
+        # 將回應顯示在訊息框中
         now = datetime.datetime.now()
         nowhour = str(now.hour)
         nowmin = str(now.minute)

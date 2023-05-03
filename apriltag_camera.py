@@ -1,8 +1,7 @@
-# test ver
 import cv2
 import math
 import pupil_apriltags as apriltag
-
+import time
 # 設定攝影機編號
 cam_id = 0
 
@@ -10,7 +9,7 @@ cam_id = 0
 cam_width = 1920
 cam_height = 1080
 
-global cam
+global cam, error_of_angle
 
 # 設定攝影機
 cam = cv2.VideoCapture(cam_id)
@@ -20,6 +19,8 @@ cam.set(cv2.CAP_PROP_FRAME_HEIGHT, cam_height)
 width = cam.get(cv2.CAP_PROP_FRAME_WIDTH)
 height = cam.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
+bool_angle = False
+
 slope = 0
 i = 0
 j = 0
@@ -27,6 +28,7 @@ k = 1
 
 END_AD_POSITIONS = []
 END_BC_POSITIONS = []
+angle_of_msrr = []
 
 # 創建一個apriltag，接著檢測AprilTags
 options = apriltag.Detector(families='tag36h11')  # windows
@@ -146,6 +148,27 @@ while True:
         END_AD_POSITIONS.append(end_ad)
         END_BC_POSITIONS.append(end_bc)
 
+        angle_of_msrr.append(com_angle)
+
+        if len(angle_of_msrr) == 2:
+            
+            error_of_angle = abs(angle_of_msrr[0]-angle_of_msrr[1])
+            bool_angle = True
+            cv2.putText(image, str(error_of_angle), (300, 300), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+            print("Angle of MSRR 1 : ", angle_of_msrr)
+
+        if len(angle_of_msrr) == 3:
+            angle_of_msrr[0] = angle_of_msrr[2]
+            print("Angle of MSRR 2 : ", angle_of_msrr)
+
+        if len(angle_of_msrr) == 4:
+            angle_of_msrr[0] = angle_of_msrr[3]
+            del angle_of_msrr[3]
+            del angle_of_msrr[2]
+            del angle_of_msrr[1]
+            
+            print("Angle of MSRR 3 : ", angle_of_msrr)
+
         # ↓ 繪製延伸線段中點連線 ↓ #
         cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
 
@@ -160,12 +183,12 @@ while True:
         cv2.putText(image, 'c', (c[0], c[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)
         cv2.putText(image, 'd', (d[0], d[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)
         cv2.putText(image, str(quadrant), (cen[0]-35, cen[1]+5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)  
-
+        cv2.putText(image, str(mid_ad), (mid_ad_x, mid_ad_y), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255), 1 )
     cv2.imshow('AprilTag', image)
         
     if cv2.waitKey(1) & 0xFF == 27:
         break
-
+    time.sleep(0.2)
 # 釋放資源
 cam.release()
 cv2.destroyAllWindows()
