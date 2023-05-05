@@ -201,7 +201,7 @@ class App:
     
         if self.tagdetect:
             self.MIDOFMSRR, self.ANGLEOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(frame) # 使用外部tag.py檔案進行比對
-           
+
         if self.putintersection:
            cv2.circle(frame, (int(tag_intersection.intersection_x), int(tag_intersection.intersection_y)), 1, (0, 0, 255), 4)
 
@@ -262,48 +262,86 @@ class App:
 
     def connect_fcn(self): # 啟動連結之功能
         self.data='Connect fail!'.encode('utf-8')
-        global position_error
+        global position_error, step
+        self.step = 0
         self.connect_function = not self.connect_function
 
         def reading_error(): # 讀取主動之 MSRR 距離目標 Intersection Point 之位置差
-            
-            self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
-            print('Position Error : ', self.position_error)
-            time.sleep(0.2)
+
             if self.connect_function == True:
+                self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
+
+                time.sleep(0.1)
+            
                 send_connect_command()
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
-            inter_x = tag_intersection.intersection_x
-            inter_y = tag_intersection.intersection_y
             
-            command = '__Fail__'
-
-            kp = 3
-            control_signal = 3000/(kp * self.position_error)
-            
-            if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR < 360):
-                command = '_Forward'
-            elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR < 180):
-                command = 'Backward'
-            elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR < 270):
-                command = '_Forward'
-            elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR < 90):
-                command = 'Backward'
-            elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR < 180):
-                command ='_Forward'
-            elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR < 360):
-                command = 'Backward'
-            elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR < 90):
-                command = '_Forward'
-            elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR < 270):
-                command = 'Backward'
-
-            self.send_assemble_command(control_signal, command)
-
-            thread_reading_error.join()
-
             if self.connect_function == True:
+                inter_x = tag_intersection.intersection_x
+                inter_y = tag_intersection.intersection_y
+    
+                command = '__Fail__'
+
+                kp = 3
+                control_signal = 3000/(kp * self.position_error)
+                
+                # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
+                if control_signal > 65535: 
+                    control_signal = 65535 
+
+                if step == 0:
+
+                    if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
+                        command = '_Forward'
+                    elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
+                        command = 'Backward'
+                    elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
+                        command = '_Forward'
+                    elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
+                        command = 'Backward'
+                    elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
+                        command ='_Forward'
+                    elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
+                        command = 'Backward'
+                    elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
+                        command = '_Forward'
+                    elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
+                        command = 'Backward'
+
+                if self.position_error <= 2:
+                    step = 1
+
+                if step == 1:
+                    
+                    if self.ERROR_OF_ANGLE <= 3:
+                        step_bool = True
+                        step = 2
+
+                    if step_bool == False:
+                        if self.ERROR_OF_ANGLE > 0:
+                            command = '___Right'
+                        elif self.ERROR_OF_ANGLE < 0:
+                            command = '____Left'
+                    
+                if step == 2:
+
+                    step = 3
+
+                if step == 3:
+                    command = '_Connect'
+                    control_signal = 65535
+                if step == 4:
+                    step = 0
+                    
+                    print('Assemble finished')
+
+                self.send_assemble_command(control_signal, command)
+
+                thread_reading_error.join()
+
+                time.sleep(0.1)
+
                 reading_error()
 
         # ---------------------------- 執行緒之設定與啟動 ---------------------------- #
@@ -313,15 +351,15 @@ class App:
         thread_reading_error.start() # 啟動 reading_error 之 Thread
         thread_send_connect_command.start() # 啟動 send_connect_command 之 Thread
 
-    def send_assemble_command(self, control_u, movecommand):
-        movecommand = '__Fail__'
-        pack_data = struct.pack('i8s', int(control_u), movecommand.encode())
+    def send_assemble_command(self, u, movecommand):
+        movecommand = movecommand
+        pack_data = struct.pack('i8s', int(u), movecommand.encode())
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
             sock.connect((HOST, PORT))
-
+            sock.settimeout(0.3)
             # 傳送指令
             sock.sendall(pack_data)
             # sock.sendall(command)
@@ -329,8 +367,6 @@ class App:
             self.data = sock.recv(BUFFER_SIZE)
         except Exception as e:
             print(e)
-
-        time.sleep(0.2)
 
         # 將回應顯示在訊息框中
         now = datetime.datetime.now()

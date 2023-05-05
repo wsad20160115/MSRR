@@ -149,15 +149,13 @@ while True:
         END_BC_POSITIONS.append(end_bc)
 
         angle_of_msrr.append(com_angle)
-
-        if len(angle_of_msrr) == 2:
-            
+        
+        if len(angle_of_msrr) > 2:
             error_of_angle = abs(angle_of_msrr[0]-angle_of_msrr[1])
-            
-            cv2.putText(image, str(error_of_angle), (300, 300), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-            print("Angle of MSRR 1 : ", angle_of_msrr)
+            cv2.putText(image, str(error_of_angle), (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
 
         if len(angle_of_msrr) == 3:
+            # 由於每次迴圈執行時需要取代掉的 list 位置不同，僅考慮有兩個的情況下，使用一 boolean 函數判斷新進數值需要取代掉哪一個原本的 list 數值
             bool_angle = not bool_angle
             if bool_angle :
                 angle_of_msrr[0] = angle_of_msrr[2]
@@ -165,11 +163,10 @@ while True:
                 angle_of_msrr[1] = angle_of_msrr[2]
 
             del angle_of_msrr[2]
-            
-            print("Len = 3 : ", angle_of_msrr)
 
+        
         print("Angle of MSRR : ", angle_of_msrr)
-        time.sleep(0.3)
+
         # ↓ 繪製延伸線段中點連線 ↓ #
         cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
 
@@ -179,12 +176,13 @@ while True:
 
         # ↓ 標註物件之旋轉角度 ↓ #
         cv2.putText(image, str(round(com_angle,2)), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-        cv2.putText(image, 'a', (a[0], a[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2) 
-        cv2.putText(image, 'b', (b[0], b[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)        
-        cv2.putText(image, 'c', (c[0], c[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)
-        cv2.putText(image, 'd', (d[0], d[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)
+        # cv2.putText(image, 'a', (a[0], a[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2) 
+        # cv2.putText(image, 'b', (b[0], b[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)        
+        # cv2.putText(image, 'c', (c[0], c[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)
+        # cv2.putText(image, 'd', (d[0], d[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)
         cv2.putText(image, str(quadrant), (cen[0]-35, cen[1]+5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)  
         cv2.putText(image, str(mid_ad), (mid_ad_x, mid_ad_y), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255), 1 )
+
     cv2.imshow('AprilTag', image)
         
     if cv2.waitKey(1) & 0xFF == 27:
