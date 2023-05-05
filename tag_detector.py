@@ -18,10 +18,12 @@ class Tag():
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
     def tag(self, image):
         
-        global mid_ad, com_angle, angle_of_msrr
+        global mid_ad, com_angle, angle_of_msrr, error_of_angle
         quadrant = 0
         com_angle = 0
         slope = 0
+        error_of_angle = 0
+        
         angle_of_msrr = []
         special_factor = False # 判斷 MSRR 是否為特殊角度如:90°、270°
         bool_angle = False
@@ -159,7 +161,7 @@ class Tag():
             #cv2.putText(image, "C", (mid_ad[0]-10, mid_ad[1]-10), cv2.FONT_ITALIC, 0.7, (150, 150, 255), 2)
             cv2.putText(image, str(quadrant), (cen[0], cen[1]), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
            
-        return mid_ad, com_angle
+        return mid_ad, com_angle, error_of_angle
     
     # def get_MID(self):
     #     return self.mid_ad

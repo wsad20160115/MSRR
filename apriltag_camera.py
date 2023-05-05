@@ -153,22 +153,23 @@ while True:
         if len(angle_of_msrr) == 2:
             
             error_of_angle = abs(angle_of_msrr[0]-angle_of_msrr[1])
-            bool_angle = True
+            
             cv2.putText(image, str(error_of_angle), (300, 300), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
             print("Angle of MSRR 1 : ", angle_of_msrr)
 
         if len(angle_of_msrr) == 3:
-            angle_of_msrr[0] = angle_of_msrr[2]
-            print("Angle of MSRR 2 : ", angle_of_msrr)
+            bool_angle = not bool_angle
+            if bool_angle :
+                angle_of_msrr[0] = angle_of_msrr[2]
+            else:
+                angle_of_msrr[1] = angle_of_msrr[2]
 
-        if len(angle_of_msrr) == 4:
-            angle_of_msrr[0] = angle_of_msrr[3]
-            del angle_of_msrr[3]
             del angle_of_msrr[2]
-            del angle_of_msrr[1]
             
-            print("Angle of MSRR 3 : ", angle_of_msrr)
+            print("Len = 3 : ", angle_of_msrr)
 
+        print("Angle of MSRR : ", angle_of_msrr)
+        time.sleep(0.3)
         # ↓ 繪製延伸線段中點連線 ↓ #
         cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
 
@@ -188,7 +189,7 @@ while True:
         
     if cv2.waitKey(1) & 0xFF == 27:
         break
-    time.sleep(0.2)
+    
 # 釋放資源
 cam.release()
 cv2.destroyAllWindows()
