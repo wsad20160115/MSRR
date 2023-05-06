@@ -187,7 +187,7 @@ while True:
         
     if cv2.waitKey(1) & 0xFF == 27:
         break
-    
+    time.sleep(0.5)
 # 釋放資源
 cam.release()
 cv2.destroyAllWindows()

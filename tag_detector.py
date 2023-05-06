@@ -146,7 +146,7 @@ class Tag():
                 angle_of_msrr[0] = angle_of_msrr[2]
 
             if bool_angle == True:
-                cv2.putText(image, str(error_of_angle), (300, 300), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+                cv2.putText(image, 'Error of angle : ' + str(round(error_of_angle, 2)), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             # ↓ 繪製延伸線段中點連線 ↓ #
 
             cv2.line(image, end_ad, end_bc, (255, 50, 0), 2, lineType=cv2.LINE_8)

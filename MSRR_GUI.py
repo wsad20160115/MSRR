@@ -1,5 +1,6 @@
 import socket
 import tkinter as tk
+import tkinter.messagebox
 import cv2
 import threading
 import datetime
@@ -123,9 +124,9 @@ class App:
         self.submit_button.place(x=row1, y=col5)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect\n Function", command=self.connect_fcn)
         self.submit_button.place(x=row2, y=col5)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command=lambda: self.send_command("Shutdown"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command =lambda: self.send_command("Shundown"))
         self.submit_button.place(x=row3, y=col5)
-        
+
         # 創建 Scrollbar 控件
         scrollbar = tk.Scrollbar(root)
         
@@ -173,6 +174,10 @@ class App:
             HOST = var.get()
             print(HOST)
         var.trace('w',show)
+
+    def create_messagebox(self, messagebox_text, pop_text):
+        tkinter.messagebox.showwarning(title = messagebox_text, # 視窗標題
+                                    message = pop_text)
     
     def test_function(self):
         pass
@@ -187,7 +192,13 @@ class App:
     # -------------- ↓ 計算 MSRR 延伸線之交點 ↓ -------------- #
     def intersection(self):
         tag_intersection.intersection(self)
-        self.putintersection = not self.putintersection
+
+        if (tag_intersection.intersection_x < 350 or tag_intersection.intersection_x > 900) or (tag_intersection.intersection_y > 600 or tag_intersection.intersection_y < 80) :
+           messagebox_text = 'Warning'
+           pop_text = 'Intersection Point is out of range ！！ '
+           self.create_messagebox(messagebox_text, pop_text)
+        else:
+            self.putintersection = not self.putintersection
 
         print('INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(tag_intersection.intersection_x, tag_intersection.intersection_y))
 
@@ -289,52 +300,95 @@ class App:
                 # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
                 if control_signal > 65535: 
                     control_signal = 65535 
+                
+                # if step == 0:
 
-                if step == 0:
+                #     if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
+                #         command = '_Forward'
+                #     elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
+                #         command = 'Backward'
+                #     elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
+                #         command = '_Forward'
+                #     elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
+                #         command = 'Backward'
+                #     elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
+                #         command ='_Forward'
+                #     elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
+                #         command = 'Backward'
+                #     elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
+                #         command = '_Forward'
+                #     elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
+                #         command = 'Backward'
 
-                    if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
-                        command = '_Forward'
-                    elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
-                        command = 'Backward'
-                    elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
-                        command = '_Forward'
-                    elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
-                        command = 'Backward'
-                    elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
-                        command ='_Forward'
-                    elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
-                        command = 'Backward'
-                    elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
-                        command = '_Forward'
-                    elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
-                        command = 'Backward'
+                # if self.position_error <= 2:
+                #     step = 1
 
-                if self.position_error <= 2:
-                    step = 1
-
-                if step == 1:
+                # if step == 1:
                     
-                    if self.ERROR_OF_ANGLE <= 3:
-                        step_bool = True
-                        step = 2
+                #     if self.ERROR_OF_ANGLE <= 3:
+                #         step_bool = True
+                #         step = 2
 
-                    if step_bool == False:
-                        if self.ERROR_OF_ANGLE > 0:
-                            command = '___Right'
-                        elif self.ERROR_OF_ANGLE < 0:
-                            command = '____Left'
+                #     if step_bool == False:
+                #         if self.ERROR_OF_ANGLE > 0:
+                #             command = '___Right'
+                #         elif self.ERROR_OF_ANGLE < 0:
+                #             command = '____Left'
                     
-                if step == 2:
+                # if step == 2:
 
-                    step = 3
+                #     step = 3
 
-                if step == 3:
-                    command = '_Connect'
-                    control_signal = 65535
-                if step == 4:
-                    step = 0
+                # if step == 3:
+                #     command = '_Connect'
+                #     control_signal = 65535
                     
-                    print('Assemble finished')
+                # if step == 4:
+                #     step = 0
+                
+                match step:
+                    case 0: # 若目前是尚未執行連結功能的狀態，則執行連結步驟 "1"
+                        if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
+                            command = '_Forward'
+                        elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
+                            command = 'Backward'
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
+                            command = '_Forward'
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
+                            command = 'Backward'
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
+                            command ='_Forward'
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
+                            command = 'Backward'
+                        elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
+                            command = '_Forward'
+                        elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
+                            command = 'Backward'
+
+                    case 1: # 若已完成連結步驟 "1"，則執行步驟 "2"
+                        if self.ERROR_OF_ANGLE <= 3:
+                            step_bool = True
+                            step = 2
+
+                        if step_bool == False:
+                            if self.ERROR_OF_ANGLE > 0:
+                                command = '___Right'
+                            elif self.ERROR_OF_ANGLE < 0:
+                                command = '____Left'
+                            
+                    case 2: # 若已完成連結步驟 "2"，則執行步驟 "3"
+                        
+                        step = 3     
+
+                    case 3: # 若已完成連結步驟 "3"，則執行步驟 "4"
+                        command = '_Connect'
+                        control_signal = 65535    
+
+                    case 4: # 連結完成，跳出視窗提醒已完成
+                        message_text = 'Hint'       
+                        pop_text = 'Assemble finished'
+                        self.create_messagebox(message_text, pop_text)
+                        
 
                 self.send_assemble_command(control_signal, command)
 
