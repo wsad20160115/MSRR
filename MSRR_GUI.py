@@ -96,7 +96,7 @@ class App:
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
         self.submit_button.place(x=row2, y=750)
         # ----------------------------------------------------- 主要 Button 區設定 ----------------------------------------------------- #
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("Connect"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("_Connect"))
         self.submit_button.place(x=row1, y=col1)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Forward", command=lambda: self.send_command("_Forward"))
         self.submit_button.place(x=row2, y=col1)
@@ -195,7 +195,7 @@ class App:
 
         if (tag_intersection.intersection_x < 350 or tag_intersection.intersection_x > 900) or (tag_intersection.intersection_y > 600 or tag_intersection.intersection_y < 80) :
            messagebox_text = 'Warning'
-           pop_text = 'Intersection Point is out of range ！！ '
+           pop_text = 'Intersection Point is out of range ！ '
            self.create_messagebox(messagebox_text, pop_text)
         else:
             self.putintersection = not self.putintersection
@@ -245,14 +245,23 @@ class App:
         data='Connect fail!'.encode('utf-8')
         # 連接到TCP服務器
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        u = self.scale.get()
+ 
+        uR = self.scale.get()
+        uL = self.scale.get()-100
         
+        if uR > 65535:
+            uR = 65535
+        elif uR < 0:
+            uR = 0
+            
+        if uL > 65535:
+            uL = 65535
+        elif uL < 0:
+            uL = 0
         movecommand = command
-        pack_data = struct.pack('i8s', u, movecommand.encode())
+        pack_data = struct.pack('ii8s', uR, uL, movecommand.encode())
         
         try:
-            sock.settimeout(0.3)
             sock.connect((HOST, PORT))
 
             # 傳送指令
@@ -262,7 +271,9 @@ class App:
             data = sock.recv(BUFFER_SIZE)
         except Exception as e:
             print('Exception', e)
-
+        finally:
+            sock.close()
+            
         # 將回應顯示在訊息框中
         now = datetime.datetime.now()
         nowhour = str(now.hour)
@@ -281,70 +292,33 @@ class App:
 
             if self.connect_function == True:
                 self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
-
-                time.sleep(0.1)
+                print('Reading Error．．．')
+                
             
                 send_connect_command()
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
-            
             if self.connect_function == True:
-                inter_x = tag_intersection.intersection_x
-                inter_y = tag_intersection.intersection_y
-    
-                command = '__Fail__'
 
-                kp = 3
-                control_signal = 3000/(kp * self.position_error)
+                inter_x = tag_intersection.intersection_x # 交會點 x 座標
+                inter_y = tag_intersection.intersection_y # 交會點 y 座標
+
+                command = '__Fail__' # 移動之命令
                 
+                OEM = 0 # Orientation Error of MSRR (移動前之角度 - 移動時之角度)
+                Kpo = 5 # 控制方向之 P-Control 參數 Kp_orientation
+
+                u = 3000/(kp * self.position_error)
+                uR = 65535 # 右輪控制參數
+                uL = 65535 # 左輪控制參數
+                kp = 3 # P-Control 數值
+
+                uR = u - (OEM * Kpo)
+                uL = u - (OEM * Kpo)
+
                 # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
                 if control_signal > 65535: 
                     control_signal = 65535 
-                
-                # if step == 0:
-
-                #     if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
-                #         command = '_Forward'
-                #     elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
-                #         command = 'Backward'
-                #     elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
-                #         command = '_Forward'
-                #     elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
-                #         command = 'Backward'
-                #     elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
-                #         command ='_Forward'
-                #     elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
-                #         command = 'Backward'
-                #     elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
-                #         command = '_Forward'
-                #     elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
-                #         command = 'Backward'
-
-                # if self.position_error <= 2:
-                #     step = 1
-
-                # if step == 1:
-                    
-                #     if self.ERROR_OF_ANGLE <= 3:
-                #         step_bool = True
-                #         step = 2
-
-                #     if step_bool == False:
-                #         if self.ERROR_OF_ANGLE > 0:
-                #             command = '___Right'
-                #         elif self.ERROR_OF_ANGLE < 0:
-                #             command = '____Left'
-                    
-                # if step == 2:
-
-                #     step = 3
-
-                # if step == 3:
-                #     command = '_Connect'
-                #     control_signal = 65535
-                    
-                # if step == 4:
-                #     step = 0
                 
                 match step:
                     case 0: # 若目前是尚未執行連結功能的狀態，則執行連結步驟 "1"
@@ -377,7 +351,7 @@ class App:
                                 command = '____Left'
                             
                     case 2: # 若已完成連結步驟 "2"，則執行步驟 "3"
-                        
+                    
                         step = 3     
 
                     case 3: # 若已完成連結步驟 "3"，則執行步驟 "4"
@@ -388,13 +362,35 @@ class App:
                         message_text = 'Hint'       
                         pop_text = 'Assemble finished'
                         self.create_messagebox(message_text, pop_text)
-                        
 
-                self.send_assemble_command(control_signal, command)
+# ----------------------------------------------------------- 發送移動命令與控制訊號 ----------------------------------------------------------- #
+                data='Connect fail!'.encode('utf-8')
+                
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # 連接到TCP服務器
 
-                thread_reading_error.join()
+                pack_data = struct.pack('ii8s', uR, uL, command.encode())
+                
+                try:
+                    sock.settimeout(0.3)
+                    sock.connect((HOST, PORT))
 
-                time.sleep(0.1)
+                    # 傳送指令
+                    sock.sendall(pack_data)
+
+                    # 接收回應
+                    data = sock.recv(BUFFER_SIZE)
+                except Exception as e:
+                    print('Exception', e)
+                
+
+                # 將回應顯示在訊息框中
+                now = datetime.datetime.now()
+                nowhour = str(now.hour)
+                nowmin = str(now.minute)
+                nowsec = str(now.second)
+                self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+
+                thread_reading_error.join() # 等待
 
                 reading_error()
 
@@ -404,31 +400,6 @@ class App:
 
         thread_reading_error.start() # 啟動 reading_error 之 Thread
         thread_send_connect_command.start() # 啟動 send_connect_command 之 Thread
-
-    def send_assemble_command(self, u, movecommand):
-        movecommand = movecommand
-        pack_data = struct.pack('i8s', int(u), movecommand.encode())
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        try:
-            sock.connect((HOST, PORT))
-            sock.settimeout(0.3)
-            # 傳送指令
-            sock.sendall(pack_data)
-            # sock.sendall(command)
-            # 接收回應
-            self.data = sock.recv(BUFFER_SIZE)
-        except Exception as e:
-            print(e)
-
-        # 將回應顯示在訊息框中
-        now = datetime.datetime.now()
-        nowhour = str(now.hour)
-        nowmin = str(now.minute)
-        nowsec = str(now.second)
-        self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ self.data.decode() + "\n")
-
 
 # 建立主視窗
 root = tk.Tk()
