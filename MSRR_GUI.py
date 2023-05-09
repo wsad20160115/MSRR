@@ -68,11 +68,16 @@ class App:
         self.update_video()
                
         # 輸入框
-        self.input_label = tk.Label(master, text="Command:")
-        self.input_label.grid(row=0, column=0)
-        self.input_entry = tk.Entry(master)
-        self.input_entry.grid(row=0, column=1)
-        
+        self.input_x_label = tk.Label(master, text="X Posttion:")
+        self.input_x_label.place(x=5, y=5)
+        self.input_x = tk.Entry(master)
+        self.input_x.place(x=5, y=25)
+
+        self.input_y_label = tk.Label(master, text="Y Posttion:")
+        self.input_y_label.place(x=175, y=5)
+        self.input_y = tk.Entry(master)
+        self.input_y.place(x=175, y=25)
+
         # 按鈕設定
         button_width = 12
         button_height = 3
@@ -83,18 +88,19 @@ class App:
         row1 = 22
         row2 = 182
         row3 = 332
-        col1 = 400
-        col2 = 470
-        col3 = 540
-        col4 = 610
-        col5 = 680 
+        col1 = 420
+        col2 = 490
+        col3 = 560
+        col4 = 630
+        col5 = 700
+        col6 = 770
 
         self.submit_button = tk.Button(master, width = button_width, height = 2, text="Clear Message", command=self.clearBox)
-        self.submit_button.place(x=250, y=335)
+        self.submit_button.place(x=250, y=355)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED On", command=lambda: self.send_command("__LED ON"))
-        self.submit_button.place(x=row1, y=750)
+        self.submit_button.place(x=row1, y=col6)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
-        self.submit_button.place(x=row2, y=750)
+        self.submit_button.place(x=row2, y=col6)
         # ----------------------------------------------------- 主要 Button 區設定 ----------------------------------------------------- #
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("_Connect"))
         self.submit_button.place(x=row1, y=col1)
@@ -132,14 +138,14 @@ class App:
         
         # 訊息框
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
-        self.message_label.place(x=18, y=35)
+        self.message_label.place(x=18, y=55)
         self.message_text = tk.Text(master, width=58, height=20)        
         self.message_text.config(yscrollcommand=scrollbar.set)
         scrollbar.config()
-        self.message_text.place(x=18, y=60)
+        self.message_text.place(x=18, y=80)
 
         self.date_text = tk.Label(master, text=self.now_date, font=('Arial', '13'))
-        self.date_text.place(x=340, y=35)
+        self.date_text.place(x=340, y=55)
 
         options = [ #設定連結開發板之IP
             "Choose Master MSRR",
@@ -158,7 +164,7 @@ class App:
         var = tk.StringVar(master)
         var.set(options[0])
         self.option_menu = tk.OptionMenu(master, var, *options)
-        self.option_menu.place(x=22, y=335)
+        self.option_menu.place(x=22, y=355)
         self.option_menu.config(width=20,height=2)
         
          # 拉桿設定
@@ -245,7 +251,8 @@ class App:
         data='Connect fail!'.encode('utf-8')
         # 連接到TCP服務器
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
- 
+
+        sock.settimeout(1)
         uR = self.scale.get()
         uL = self.scale.get()-100
         
@@ -259,11 +266,11 @@ class App:
         elif uL < 0:
             uL = 0
         movecommand = command
-        pack_data = struct.pack('ii8s', uR, uL, movecommand.encode())
+        pack_data = struct.pack('ii8s', uR, uL, movecommand.encode()) # 將右輪、左輪、移動方式包裝成 "struct" 一次發送給開發板
         
         try:
             sock.connect((HOST, PORT))
-
+            sock.settimeout(3)
             # 傳送指令
             sock.sendall(pack_data)
 
@@ -280,11 +287,12 @@ class App:
         nowmin = str(now.minute)
         nowsec = str(now.second)
         self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
-        
 
     def connect_fcn(self): # 啟動連結之功能
         self.data='Connect fail!'.encode('utf-8')
+
         global position_error, step
+
         self.step = 0
         self.connect_function = not self.connect_function
 
@@ -294,7 +302,6 @@ class App:
                 self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
                 print('Reading Error．．．')
                 
-            
                 send_connect_command()
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
@@ -307,20 +314,23 @@ class App:
                 
                 OEM = 0 # Orientation Error of MSRR (移動前之角度 - 移動時之角度)
                 Kpo = 5 # 控制方向之 P-Control 參數 Kp_orientation
+                Kp = 0.005 # P-Control 數值
 
-                u = 3000/(kp * self.position_error)
+                u = 3000/(Kp * self.position_error)
                 uR = 65535 # 右輪控制參數
                 uL = 65535 # 左輪控制參數
-                kp = 3 # P-Control 數值
-
-                uR = u - (OEM * Kpo)
-                uL = u - (OEM * Kpo)
+                
+                uR = int(u - (OEM * Kpo))
+                uL = int(u - (OEM * Kpo))
 
                 # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
-                if control_signal > 65535: 
-                    control_signal = 65535 
+                if uR > 65535: 
+                    uR = 65535
+
+                if uL > 65535:
+                    uL = 65535 
                 
-                match step:
+                match self.step:
                     case 0: # 若目前是尚未執行連結功能的狀態，則執行連結步驟 "1"
                         if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
                             command = '_Forward'
@@ -339,6 +349,9 @@ class App:
                         elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
                             command = 'Backward'
 
+                        if self.position_error <= 2:
+                            step = 1
+                            
                     case 1: # 若已完成連結步驟 "1"，則執行步驟 "2"
                         if self.ERROR_OF_ANGLE <= 3:
                             step_bool = True
@@ -356,7 +369,8 @@ class App:
 
                     case 3: # 若已完成連結步驟 "3"，則執行步驟 "4"
                         command = '_Connect'
-                        control_signal = 65535    
+                        uR = 65535    
+                        uL = 65535
 
                     case 4: # 連結完成，跳出視窗提醒已完成
                         message_text = 'Hint'       
@@ -371,7 +385,7 @@ class App:
                 pack_data = struct.pack('ii8s', uR, uL, command.encode())
                 
                 try:
-                    sock.settimeout(0.3)
+                    
                     sock.connect((HOST, PORT))
 
                     # 傳送指令
@@ -381,7 +395,8 @@ class App:
                     data = sock.recv(BUFFER_SIZE)
                 except Exception as e:
                     print('Exception', e)
-                
+                finally:
+                    sock.close()
 
                 # 將回應顯示在訊息框中
                 now = datetime.datetime.now()

@@ -152,7 +152,7 @@ while True:
         
         if len(angle_of_msrr) > 2:
             error_of_angle = abs(angle_of_msrr[0]-angle_of_msrr[1])
-            cv2.putText(image, str(error_of_angle), (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+            cv2.putText(image, f'Error of MSRR: {str(error_of_angle)}', (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (130, 2200, 0), 2)
 
         if len(angle_of_msrr) == 3:
             # 由於每次迴圈執行時需要取代掉的 list 位置不同，僅考慮有兩個的情況下，使用一 boolean 函數判斷新進數值需要取代掉哪一個原本的 list 數值
@@ -187,7 +187,7 @@ while True:
         
     if cv2.waitKey(1) & 0xFF == 27:
         break
-    time.sleep(0.5)
+    
 # 釋放資源
 cam.release()
 cv2.destroyAllWindows()
