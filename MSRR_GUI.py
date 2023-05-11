@@ -4,7 +4,6 @@ import tkinter.messagebox
 import cv2
 import threading
 import datetime
-import time
 from PIL import Image, ImageTk
 import struct
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
@@ -28,8 +27,11 @@ END_BC_POSITIONS = []
 class App:
 
     global classTag, MIDOFMSRR, ANGLEOFMSRR, tagdetect, connect_function, ERROR_OF_ANGLE
-    # MIDOFMSRR = (0.0, 0.0)
-    # ANGLEOFMSRR = 0.0
+    global target_x, target_y
+
+    target_x = 0
+    target_y = 0
+    
     classTag = tag_detector.Tag()
 
     now_date = datetime.date.today()
@@ -96,7 +98,7 @@ class App:
         col6 = 770
 
         self.submit_button = tk.Button(master, width = button_width, height = 2, text="Clear Message", command=self.clearBox)
-        self.submit_button.place(x=250, y=355)
+        self.submit_button.place(x=250, y=365)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED On", command=lambda: self.send_command("__LED ON"))
         self.submit_button.place(x=row1, y=col6)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
@@ -126,11 +128,11 @@ class App:
         self.submit_button.place(x=row2, y=col4)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
         self.submit_button.place(x=row3, y=col4)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Put\n Intersection", command = self.put_intersection)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Move to \n target", command = self.move_to_target)
         self.submit_button.place(x=row1, y=col5)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect\n Function", command=self.connect_fcn)
         self.submit_button.place(x=row2, y=col5)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command =lambda: self.send_command("Shundown"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command = self.input_angle)
         self.submit_button.place(x=row3, y=col5)
 
         # 創建 Scrollbar 控件
@@ -164,7 +166,7 @@ class App:
         var = tk.StringVar(master)
         var.set(options[0])
         self.option_menu = tk.OptionMenu(master, var, *options)
-        self.option_menu.place(x=22, y=355)
+        self.option_menu.place(x=22, y=365)
         self.option_menu.config(width=20,height=2)
         
          # 拉桿設定
@@ -187,6 +189,11 @@ class App:
     
     def test_function(self):
         pass
+    
+    def move_to_target(self):
+        self.target_x = self.input_x.get()
+        self.target_y = self.input_y.get()
+        print(f'X : {self.target_x} Y : {self.target_y}')
 
     def toggle_tag_detector(self):
         
@@ -217,10 +224,15 @@ class App:
         ret, frame = self.cam.read()
     
         if self.tagdetect:
-            self.MIDOFMSRR, self.ANGLEOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(frame) # 使用外部tag.py檔案進行比對
+            self.MIDOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(frame) # 使用外部tag.py檔案進行比對
 
         if self.putintersection:
            cv2.circle(frame, (int(tag_intersection.intersection_x), int(tag_intersection.intersection_y)), 1, (0, 0, 255), 4)
+
+        cv2.line(frame, (350, 80), (900, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)    
+        cv2.line(frame, (900, 80), (900, 600), (255, 50, 0), 2, lineType=cv2.LINE_8)    
+        cv2.line(frame, (900, 600), (350, 600), (255, 50, 0), 2, lineType=cv2.LINE_8)    
+        cv2.line(frame, (350, 600), (350, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)
 
         # 將OpenCV圖像格式轉換為PIL圖像格式
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
@@ -239,6 +251,10 @@ class App:
         
         # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
 
+    def input_angle(self):
+        self.ANGLEOFMSRR = classTag.get_angle()
+        print(f'Angle of MSRR : {self.ANGLEOFMSRR}')
+
     def snapshot(self):
 
         ret, frame = self.cam.read()
@@ -254,7 +270,7 @@ class App:
 
         sock.settimeout(1)
         uR = self.scale.get()
-        uL = self.scale.get()-100
+        uL = self.scale.get()
         
         if uR > 65535:
             uR = 65535
@@ -265,6 +281,7 @@ class App:
             uL = 65535
         elif uL < 0:
             uL = 0
+
         movecommand = command
         pack_data = struct.pack('ii8s', uR, uL, movecommand.encode()) # 將右輪、左輪、移動方式包裝成 "struct" 一次發送給開發板
         
@@ -289,12 +306,16 @@ class App:
         self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
 
     def connect_fcn(self): # 啟動連結之功能
-        self.data='Connect fail!'.encode('utf-8')
+        try:
+            self.data='Connect fail!'.encode('utf-8')
 
-        global position_error, step
+            global position_error, step
 
-        self.step = 0
-        self.connect_function = not self.connect_function
+            self.step = 0
+            self.connect_function = not self.connect_function
+            self.OAM = self.ANGLEOFMSRR[1]
+        except ValueError as VE:
+            print(ValueError)
 
         def reading_error(): # 讀取主動之 MSRR 距離目標 Intersection Point 之位置差
 
@@ -306,11 +327,12 @@ class App:
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
             if self.connect_function == True:
-
+                print(f'Error : {self.position_error}')
                 inter_x = tag_intersection.intersection_x # 交會點 x 座標
                 inter_y = tag_intersection.intersection_y # 交會點 y 座標
 
                 command = '__Fail__' # 移動之命令
+                step_bool = False
                 
                 OEM = 0 # Orientation Error of MSRR (移動前之角度 - 移動時之角度)
                 Kpo = 5 # 控制方向之 P-Control 參數 Kp_orientation
@@ -349,13 +371,13 @@ class App:
                         elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
                             command = 'Backward'
 
-                        if self.position_error <= 2:
-                            step = 1
+                        if self.position_error <= 3:
+                            self.step = 1
                             
                     case 1: # 若已完成連結步驟 "1"，則執行步驟 "2"
                         if self.ERROR_OF_ANGLE <= 3:
                             step_bool = True
-                            step = 2
+                            self.step = 2
 
                         if step_bool == False:
                             if self.ERROR_OF_ANGLE > 0:
@@ -365,7 +387,7 @@ class App:
                             
                     case 2: # 若已完成連結步驟 "2"，則執行步驟 "3"
                     
-                        step = 3     
+                        self.step = 3     
 
                     case 3: # 若已完成連結步驟 "3"，則執行步驟 "4"
                         command = '_Connect'
@@ -375,6 +397,7 @@ class App:
                     case 4: # 連結完成，跳出視窗提醒已完成
                         message_text = 'Hint'       
                         pop_text = 'Assemble finished'
+                        self.step = 5
                         self.create_messagebox(message_text, pop_text)
 
 # ----------------------------------------------------------- 發送移動命令與控制訊號 ----------------------------------------------------------- #
@@ -393,6 +416,7 @@ class App:
 
                     # 接收回應
                     data = sock.recv(BUFFER_SIZE)
+                    print(self.step)
                 except Exception as e:
                     print('Exception', e)
                 finally:

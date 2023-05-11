@@ -161,7 +161,10 @@ class Tag():
             #cv2.putText(image, "C", (mid_ad[0]-10, mid_ad[1]-10), cv2.FONT_ITALIC, 0.7, (150, 150, 255), 2)
             cv2.putText(image, str(quadrant), (cen[0], cen[1]), cv2.FONT_ITALIC, 0.7, (130, 180, 255), 2)
            
-        return mid_ad, angle_of_msrr, error_of_angle, 
+        return mid_ad, error_of_angle
+    
+    def get_angle(self):
+        return angle_of_msrr
     
     # def get_MID(self):
     #     return self.mid_ad
