@@ -29,6 +29,8 @@ class App:
     global classTag, MIDOFMSRR, ANGLEOFMSRR, tagdetect, connect_function, ERROR_OF_ANGLE
     global target_x, target_y
 
+    region = False # 標示繪製交會點區塊之Boolean函數
+
     target_x = 0
     target_y = 0
     
@@ -37,7 +39,6 @@ class App:
     now_date = datetime.date.today()
 
     # 設定AprilTag檢測器啟用與關閉
-    
     tagintersection = False
     putintersection = False
 
@@ -99,10 +100,7 @@ class App:
 
         self.submit_button = tk.Button(master, width = button_width, height = 2, text="Clear Message", command=self.clearBox)
         self.submit_button.place(x=250, y=365)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED On", command=lambda: self.send_command("__LED ON"))
-        self.submit_button.place(x=row1, y=col6)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
-        self.submit_button.place(x=row2, y=col6)
+        
         # ----------------------------------------------------- 主要 Button 區設定 ----------------------------------------------------- #
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("_Connect"))
         self.submit_button.place(x=row1, y=col1)
@@ -132,9 +130,14 @@ class App:
         self.submit_button.place(x=row1, y=col5)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect\n Function", command=self.connect_fcn)
         self.submit_button.place(x=row2, y=col5)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Shutdown", command = self.input_angle)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Get\n Angle", command = self.input_angle)
         self.submit_button.place(x=row3, y=col5)
-
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED On", command=lambda: self.send_command("__LED ON"))
+        self.submit_button.place(x=row1, y=col6)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
+        self.submit_button.place(x=row2, y=col6)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.mark_region)
+        self.submit_button.place(x=row3, y=col6)
         # 創建 Scrollbar 控件
         scrollbar = tk.Scrollbar(root)
         
@@ -187,6 +190,10 @@ class App:
         tkinter.messagebox.showwarning(title = messagebox_text, # 視窗標題
                                     message = pop_text)
     
+    def mark_region(self):
+        
+        self.region = not self.region
+
     def test_function(self):
         pass
     
@@ -228,11 +235,12 @@ class App:
 
         if self.putintersection:
            cv2.circle(frame, (int(tag_intersection.intersection_x), int(tag_intersection.intersection_y)), 1, (0, 0, 255), 4)
-
-        cv2.line(frame, (350, 80), (900, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)    
-        cv2.line(frame, (900, 80), (900, 600), (255, 50, 0), 2, lineType=cv2.LINE_8)    
-        cv2.line(frame, (900, 600), (350, 600), (255, 50, 0), 2, lineType=cv2.LINE_8)    
-        cv2.line(frame, (350, 600), (350, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)
+        
+        if self.region: 
+            cv2.line(frame, (350, 80), (900, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)    
+            cv2.line(frame, (900, 80), (900, 600), (255, 50, 0), 2, lineType=cv2.LINE_8)    
+            cv2.line(frame, (900, 600), (350, 600), (255, 50, 0), 2, lineType=cv2.LINE_8)    
+            cv2.line(frame, (350, 600), (350, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)
 
         # 將OpenCV圖像格式轉換為PIL圖像格式
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
@@ -315,8 +323,8 @@ class App:
             self.connect_function = not self.connect_function
             self.OAM = self.ANGLEOFMSRR[1]
         except ValueError as VE:
-            print(ValueError)
-
+            
+            self.message_text.insert(tk.END,f'Error : {VE} ' )
         def reading_error(): # 讀取主動之 MSRR 距離目標 Intersection Point 之位置差
 
             if self.connect_function == True:
