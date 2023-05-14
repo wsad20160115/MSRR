@@ -4,6 +4,7 @@ import tkinter.messagebox
 import cv2
 import threading
 import datetime
+import time
 from PIL import Image, ImageTk
 import struct
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
@@ -26,7 +27,7 @@ END_BC_POSITIONS = []
 
 class App:
 
-    global classTag, MIDOFMSRR, ANGLEOFMSRR, tagdetect, connect_function, ERROR_OF_ANGLE
+    global classTag, MIDOFMSRR, ANGLE_OF_MSRR, tagdetect, connect_function, ERROR_OF_ANGLE
     global target_x, target_y
 
     region = False # 標示繪製交會點區塊之Boolean函數
@@ -99,7 +100,7 @@ class App:
         col6 = 770
 
         self.submit_button = tk.Button(master, width = button_width, height = 2, text="Clear Message", command=self.clearBox)
-        self.submit_button.place(x=250, y=365)
+        self.submit_button.place(x=250, y=355)
         
         # ----------------------------------------------------- 主要 Button 區設定 ----------------------------------------------------- #
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("_Connect"))
@@ -138,19 +139,23 @@ class App:
         self.submit_button.place(x=row2, y=col6)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.mark_region)
         self.submit_button.place(x=row3, y=col6)
-        # 創建 Scrollbar 控件
-        scrollbar = tk.Scrollbar(root)
+
         
-        # 訊息框
+        # 訊息框說明
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
         self.message_label.place(x=18, y=55)
-        self.message_text = tk.Text(master, width=58, height=20)        
-        self.message_text.config(yscrollcommand=scrollbar.set)
-        scrollbar.config()
-        self.message_text.place(x=18, y=80)
-
+        
+        # 訊息框說明
+        self.message_response = tk.Text(master, width=58, height=20)        
+        self.message_response.place(x=18, y=80)
+        
+        # 訊息框日期
         self.date_text = tk.Label(master, text=self.now_date, font=('Arial', '13'))
         self.date_text.place(x=340, y=55)
+
+        # 其他資訊
+        self.message_information = tk.Text(master, width=50, height=8)        
+        self.message_information.place(x=1360, y=730)
 
         options = [ #設定連結開發板之IP
             "Choose Master MSRR",
@@ -169,14 +174,14 @@ class App:
         var = tk.StringVar(master)
         var.set(options[0])
         self.option_menu = tk.OptionMenu(master, var, *options)
-        self.option_menu.place(x=22, y=365)
+        self.option_menu.place(x=22, y=355)
         self.option_menu.config(width=20,height=2)
         
          # 拉桿設定
         font = ('Courier New', 16, 'bold')
         self.scale = tk.Scale(
             label='PWM Pulse Width', font=font, orient=tk.HORIZONTAL, showvalue=True,
-            bg='white', fg='gray', tickinterval=10000, length=1280, width=20,
+            bg='white', fg='gray', tickinterval=10000, length=900, width=20,
             troughcolor='gray', from_ = 0, to = 65535)
         self.scale.place(x=450, y=730)
 
@@ -186,45 +191,6 @@ class App:
             print(HOST)
         var.trace('w',show)
 
-    def create_messagebox(self, messagebox_text, pop_text):
-        tkinter.messagebox.showwarning(title = messagebox_text, # 視窗標題
-                                    message = pop_text)
-    
-    def mark_region(self):
-        
-        self.region = not self.region
-
-    def test_function(self):
-        pass
-    
-    def move_to_target(self):
-        self.target_x = self.input_x.get()
-        self.target_y = self.input_y.get()
-        print(f'X : {self.target_x} Y : {self.target_y}')
-
-    def toggle_tag_detector(self):
-        
-        self. tagdetect = not self. tagdetect
-
-    def put_intersection(self):
-        self.putintersection = not self.putintersection
-
-    # -------------- ↓ 計算 MSRR 延伸線之交點 ↓ -------------- #
-    def intersection(self):
-        tag_intersection.intersection(self)
-
-        if (tag_intersection.intersection_x < 350 or tag_intersection.intersection_x > 900) or (tag_intersection.intersection_y > 600 or tag_intersection.intersection_y < 80) :
-           messagebox_text = 'Warning'
-           pop_text = 'Intersection Point is out of range ！ '
-           self.create_messagebox(messagebox_text, pop_text)
-        else:
-            self.putintersection = not self.putintersection
-
-        print('INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(tag_intersection.intersection_x, tag_intersection.intersection_y))
-
-    def clearBox(self): # 清除 Response 訊息框中的所有訊息
-        self.message_text.delete("1.0", "end")
-    
     #------------------ ↓ 顯示影像 ↓ ------------------#       
     def update_video(self):
         # 從攝影機捕捉一張畫面
@@ -232,6 +198,8 @@ class App:
     
         if self.tagdetect:
             self.MIDOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(frame) # 使用外部tag.py檔案進行比對
+            self.update_angle = classTag.get_angle()
+            #self.message_information.insert(tk.END, f'Angle = {self.update_angle} \n')
 
         if self.putintersection:
            cv2.circle(frame, (int(tag_intersection.intersection_x), int(tag_intersection.intersection_y)), 1, (0, 0, 255), 4)
@@ -256,13 +224,55 @@ class App:
 
         # 每 33 毫秒更新一次畫面
         self.master.after(33, self.update_video) 
+
+    def create_messagebox(self, messagebox_text, pop_text):
+        tkinter.messagebox.showwarning(title = messagebox_text, # 視窗標題
+                                    message = pop_text)
+    
+    def mark_region(self):
         
-        # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
+        self.region = not self.region
 
-    def input_angle(self):
-        self.ANGLEOFMSRR = classTag.get_angle()
-        print(f'Angle of MSRR : {self.ANGLEOFMSRR}')
+    def test_function(self):
+        pass
+    
+    def move_to_target(self):
+        self.target_x = self.input_x.get()
+        self.target_y = self.input_y.get()
+        self.message_information.insert(tk.END, f'Target X : {self.target_x} Target Y : {self.target_y} \n')
 
+    def toggle_tag_detector(self):
+        
+        self. tagdetect = not self. tagdetect
+
+    def put_intersection(self):
+        self.putintersection = not self.putintersection
+
+    # ------------------------------------------ ↓ 計算 MSRR 延伸線之交點 ↓ ------------------------------------------ #
+    def intersection(self):
+        tag_intersection.intersection(self)
+
+        if (tag_intersection.intersection_x < 350 or tag_intersection.intersection_x > 900) or (tag_intersection.intersection_y > 600 or tag_intersection.intersection_y < 80) :
+           messagebox_text = 'Warning'
+           pop_text = 'Intersection Point is out of range ！ '
+           self.create_messagebox(messagebox_text, pop_text)
+        else:
+            self.putintersection = not self.putintersection
+
+        self.message_information.insert(tk.END,'INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(tag_intersection.intersection_x, tag_intersection.intersection_y)+ "\n")
+    
+    def clearBox(self): # 清除 Response 訊息框中的所有訊息
+
+        self.message_response.delete("1.0", "end")
+        self.message_information.delete("1.0", "end")
+
+    def input_angle(self): # 取得要移動之MSRR原先的AprilTag角度
+        
+        ANGLE_OF_MSRR = classTag.get_angle()
+        self.OAM = ANGLE_OF_MSRR[0]  # 讀取要移動之MSRR原先的AprilTag角度 {Original Angle of MSRR}
+        self.message_information.insert(tk.END, f'Angle of MSRR : {ANGLE_OF_MSRR} \n')
+      
+    
     def snapshot(self):
 
         ret, frame = self.cam.read()
@@ -302,7 +312,8 @@ class App:
             # 接收回應
             data = sock.recv(BUFFER_SIZE)
         except Exception as e:
-            print('Exception', e)
+
+            self.message_information.insert(tk.END, e)
         finally:
             sock.close()
             
@@ -311,47 +322,57 @@ class App:
         nowhour = str(now.hour)
         nowmin = str(now.minute)
         nowsec = str(now.second)
-        self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+        self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
 
     def connect_fcn(self): # 啟動連結之功能
+        global position_error, step
+        self.OEM = 0 # Orientation Error of MSRR (移動前之角度 - 移動時之角度)
+        self.step = 0
         try:
             self.data='Connect fail!'.encode('utf-8')
 
-            global position_error, step
-
-            self.step = 0
             self.connect_function = not self.connect_function
-            self.OAM = self.ANGLEOFMSRR[1]
+            
         except ValueError as VE:
             
-            self.message_text.insert(tk.END,f'Error : {VE} ' )
+            self.message_information.insert(tk.END,f'Error : {VE} ' )
+
         def reading_error(): # 讀取主動之 MSRR 距離目標 Intersection Point 之位置差
 
             if self.connect_function == True:
                 self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
-                print('Reading Error．．．')
                 
+                self.message_information.insert(tk.END, f'Distance : {self.position_error} \n')
+                time.sleep(0.2)
                 send_connect_command()
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
             if self.connect_function == True:
-                print(f'Error : {self.position_error}')
+
                 inter_x = tag_intersection.intersection_x # 交會點 x 座標
                 inter_y = tag_intersection.intersection_y # 交會點 y 座標
 
                 command = '__Fail__' # 移動之命令
                 step_bool = False
                 
-                OEM = 0 # Orientation Error of MSRR (移動前之角度 - 移動時之角度)
                 Kpo = 5 # 控制方向之 P-Control 參數 Kp_orientation
                 Kp = 0.005 # P-Control 數值
+      
+                self.OEM = self.update_angle[1] - int(self.OAM)
 
                 u = 3000/(Kp * self.position_error)
+
                 uR = 65535 # 右輪控制參數
                 uL = 65535 # 左輪控制參數
-                
-                uR = int(u - (OEM * Kpo))
-                uL = int(u - (OEM * Kpo))
+
+                if self.OEM > 0:
+                    uR = int(u + (self.OEM * Kpo))
+                    uL = int(u - (self.OEM * Kpo))
+
+                elif self.OEM < 0:
+                    uR = int(u - (self.OEM * Kpo))
+                    uL = int(u + (self.OEM * Kpo))
+
 
                 # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
                 if uR > 65535: 
@@ -362,21 +383,21 @@ class App:
                 
                 match self.step:
                     case 0: # 若目前是尚未執行連結功能的狀態，則執行連結步驟 "1"
-                        if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
+                        if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.OAM < 360):
                             command = '_Forward'
-                        elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
+                        elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.OAM < 180):
                             command = 'Backward'
-                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.OAM < 270):
                             command = '_Forward'
-                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.OAM < 90):
                             command = 'Backward'
-                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.ANGLEOFMSRR[0] < 180):
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.OAM < 180):
                             command ='_Forward'
-                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.ANGLEOFMSRR[0] < 360):
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.OAM < 360):
                             command = 'Backward'
-                        elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.ANGLEOFMSRR[0] < 90):
+                        elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.OAM < 90):
                             command = '_Forward'
-                        elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.ANGLEOFMSRR[0] < 270):
+                        elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.OAM < 270):
                             command = 'Backward'
 
                         if self.position_error <= 3:
@@ -403,10 +424,10 @@ class App:
                         uL = 65535
 
                     case 4: # 連結完成，跳出視窗提醒已完成
-                        message_text = 'Hint'       
+                        message_response = 'Hint'       
                         pop_text = 'Assemble finished'
                         self.step = 5
-                        self.create_messagebox(message_text, pop_text)
+                        self.create_messagebox(message_response, pop_text)
 
 # ----------------------------------------------------------- 發送移動命令與控制訊號 ----------------------------------------------------------- #
                 data='Connect fail!'.encode('utf-8')
@@ -426,7 +447,7 @@ class App:
                     data = sock.recv(BUFFER_SIZE)
                     print(self.step)
                 except Exception as e:
-                    print('Exception', e)
+                    self.message_information.insert(tk.END, f'{e} \n')
                 finally:
                     sock.close()
 
@@ -435,10 +456,10 @@ class App:
                 nowhour = str(now.hour)
                 nowmin = str(now.minute)
                 nowsec = str(now.second)
-                self.message_text.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+                self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
 
                 thread_reading_error.join() # 等待
-
+                time.sleep(0.2)
                 reading_error()
 
         # ---------------------------- 執行緒之設定與啟動 ---------------------------- #
