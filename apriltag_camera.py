@@ -6,8 +6,8 @@ import time
 cam_id = 0
 
 # 設定攝影機視訊大小
-cam_width = 1920
-cam_height = 1080
+cam_width = 1344
+cam_height = 756
 
 global cam, error_of_angle
 

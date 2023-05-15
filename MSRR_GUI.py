@@ -7,11 +7,14 @@ import datetime
 import time
 from PIL import Image, ImageTk
 import struct
+import numpy as np
+import glob
+import sys
+import calibration
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
 import tag_intersection # 引用 tag_intersection 用以找出兩 MSRR 之交點 
-import sys
 
-sys.setrecursionlimit(100000)
+sys.setrecursionlimit(100000) # 設定最大遞迴次數
 
 #------------- ↓ 建立TCP客戶端 ↓ -------------
 HOST = '0.0.0.0'
@@ -31,6 +34,7 @@ class App:
     global target_x, target_y
 
     region = False # 標示繪製交會點區塊之Boolean函數
+    cal = False
 
     target_x = 0
     target_y = 0
@@ -43,7 +47,7 @@ class App:
     tagintersection = False
     putintersection = False
 
-    def __init__(self, master):
+    def __init__(self, master):  
 
         self.tagdetect = False
         self.connect_function = False
@@ -137,10 +141,9 @@ class App:
         self.submit_button.place(x=row1, y=col6)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
         self.submit_button.place(x=row2, y=col6)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.mark_region)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.calibrate)
         self.submit_button.place(x=row3, y=col6)
 
-        
         # 訊息框說明
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
         self.message_label.place(x=18, y=55)
@@ -188,14 +191,17 @@ class App:
         def show(*e):
             global HOST
             HOST = var.get()
-            print(HOST)
+            
         var.trace('w',show)
 
     #------------------ ↓ 顯示影像 ↓ ------------------#       
     def update_video(self):
         # 從攝影機捕捉一張畫面
         ret, frame = self.cam.read()
-    
+        if self.cal:
+
+            calibration.show_calibration(frame)
+
         if self.tagdetect:
             self.MIDOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(frame) # 使用外部tag.py檔案進行比對
             self.update_angle = classTag.get_angle()
@@ -230,8 +236,10 @@ class App:
                                     message = pop_text)
     
     def mark_region(self):
-        
         self.region = not self.region
+
+    def calibrate(self):
+        self.cal = not self.cal
 
     def test_function(self):
         pass
@@ -286,7 +294,6 @@ class App:
         # 連接到TCP服務器
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        sock.settimeout(1)
         uR = self.scale.get()
         uL = self.scale.get()
         
@@ -328,6 +335,8 @@ class App:
         global position_error, step
         self.OEM = 0 # Orientation Error of MSRR (移動前之角度 - 移動時之角度)
         self.step = 0
+        self.position_error = 0
+
         try:
             self.data='Connect fail!'.encode('utf-8')
 
@@ -439,7 +448,7 @@ class App:
                 try:
                     
                     sock.connect((HOST, PORT))
-
+                    sock.settimeout(0.2)
                     # 傳送指令
                     sock.sendall(pack_data)
 
