@@ -2,31 +2,14 @@ import cv2
 import pupil_apriltags as apriltag
 import math
 
-def intersection(self):
+def intersection(frame):
     global intersection_x, intersection_y
     
     intersection_x = 0
     intersection_y = 0
 
-    # 設定攝影機編號
-    self.cam_id = 0
-    
-    # 設定攝影機視訊大小
-    self.cam_width = 1920*0.7
-    self.cam_height = 1080*0.7
-
-    # 設定攝影機
-    self.cam = cv2.VideoCapture(self.cam_id)
-    self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.cam_width)
-    self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.cam_height)
-
-    ret, frame = self.cam.read()
-
-    # cv2.imwrite("./image/intersection.jpg", frame)
-
-    # image = cv2.imread('./image/intersection.jpg')
     image = frame
-    # image = cv2.flip(image, 1)
+
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # 設置旗標 flag 用以除錯及檢測狀態
@@ -57,18 +40,6 @@ def intersection(self):
         
         # 取得 AprilTag 的中心座標
         cen = (int(r.center[0]), int(r.center[1]))
-
-        # 繪製檢測到的AprilTag的框
-        cv2.line(image, a, b, (255, 0, 255), 1, lineType=cv2.LINE_AA)
-        cv2.line(image, b, c, (255, 0, 255), 1, lineType=cv2.LINE_AA)
-        cv2.line(image, c, d, (255, 0, 255), 1, lineType=cv2.LINE_AA)
-        cv2.line(image, d, a, (255, 0, 255), 1, lineType=cv2.LINE_AA)
-
-        #計算 AprilTag 的旋轉角度       
-        # slope = (c[1]-b[1])/(c[0]-b[0])
-        # angle = math.degrees(math.atan(slope))
-        # angle = round(angle, 2)
-        # print('Slope =', slope)
         
         # ↓ 找出線段中點 ↓ #
         mid_bc_x = int((c[0]+b[0])/2)
@@ -100,42 +71,6 @@ def intersection(self):
         END_AD_POSITIONS.append(end_ad)
         END_BC_POSITIONS.append(end_bc)
 
-        # ↓ 計算兩中心線段 X 、 Y 座標  ↓ #
-        # print("\nFlag = ", flag)
-        # print("Mid Angle = ", round(mid_angle,2))
-        # print("Angle = ", angle)
-        # i從1開始，但儲存兩個END Points的List之初使存儲位置為 0
-        # print("i = ", i) 
-        # print("END AD = ", END_AD_POSITIONS[i-1]) 
-        # print("END BC = ", END_BC_POSITIONS[i-1])
-        
-        # cv2.putText(image, str(flag), (cen[0]-10, cen[1]-35), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-        # cv2.putText(image, str(com_angle), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-        
-        # 設定 MSRR 延伸線位置
-        cv2.circle(image, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
-        cv2.circle(image, (end_ad[0], end_ad[1]), 1, (250, 255, 0), 10)
-
-        # cv2.putText(image, 'MID_BC', (mid_bc[0]-15, mid_bc[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-        # cv2.putText(image, 'MID_AD', (mid_ad[0]-15, mid_ad[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-
-        # ↓ 繪製線段中點連線 ↓ #
-        # cv2.line(image, mid_ad, mid_bc, (0, 220, 180), 2, lineType=cv2.LINE_8)
-        
-        # ↓ 繪製延伸線 ↓ #
-        cv2.line(image, end_ad, end_bc, (255, 255, 0), 1, lineType=cv2.LINE_8)
-
-        # 標註中心點
-        cv2.circle(image, (cen[0], cen[1]), 1, (0, 0, 255),3 )
-
-        # ↓ 標註線段中點 ↓ #
-        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
-        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
-        
-        # cv2.circle(image, (int(end_ad[0]), int(end_ad[1])), 1, (250, 255, 0), 10)
-        
-        cv2.putText(image, str(i), cen, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-
         if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
             continue
         else :       
@@ -159,10 +94,3 @@ def intersection(self):
                         # print(f"Intersection point: ({globals.intersection_x:.2f}, {globals.intersection_y:.2f})")
                     else:
                         print("Lines are parallel")
-
-                    # text  = str(f"({intersection_x:.2f}, {intersection_y:.2f})")
-                    # cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 0, 255), 5)
-                    # cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
-                    # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                    distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5    
-

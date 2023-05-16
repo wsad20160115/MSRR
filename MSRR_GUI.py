@@ -10,7 +10,7 @@ import struct
 import numpy as np
 import calibration_frame
 import sys
-
+import pickle
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
 import tag_intersection # 引用 tag_intersection 用以找出兩 MSRR 之交點 
 
@@ -45,7 +45,8 @@ class App:
 
     # 設定AprilTag檢測器啟用與關閉
     tagintersection = False
-    putintersection = False
+    toggle_get_angle = False
+    put_intersection_point = False
 
     def __init__(self, master):  
 
@@ -142,7 +143,7 @@ class App:
         self.submit_button.place(x=row1, y=col6)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
         self.submit_button.place(x=row2, y=col6)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.region)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.mark_region)
         self.submit_button.place(x=row3, y=col6)
 
         # 訊息框說明
@@ -198,27 +199,43 @@ class App:
     #------------------ ↓ 顯示影像 ↓ ------------------#       
     def update_video(self):
         # 從攝影機捕捉一張畫面
-        ret, frame = self.cam.read()
+        ret, self.frame = self.cam.read()
 
-        if self.cal:
-           frame =  calibration_frame.calibration(frame)
+        if self.cal == False: #若按下影像校正鈕，則將畫面轉變為影像校正後之結果
+            # 讀取影像校正檔案
+            with open('calibration_parameter.pkl', 'rb') as calibrate:
+                calib_params = pickle.load(calibrate)
+            # 設定影像校正參數
+            mtx = calib_params['mtx']
+            dist = calib_params['dist']
+            # rvecs = calib_params['rvecs']
+            # tvecs = calib_params['tvecs']
+            u = calib_params['u']
+            v = calib_params['v']
+            
+            h1, w1 = self.frame.shape[:2]
+            newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (u, v), 0, (u, v))
+            # 校正影像畸變
+           
+            mapx,mapy=cv2.initUndistortRectifyMap(mtx,dist,None,newcameramtx,(w1,h1),5)
+            self.frame=cv2.remap(self.frame,mapx,mapy,cv2.INTER_LINEAR)
 
         if self.tagdetect:
-            self.MIDOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(frame) # 使用外部tag.py檔案進行比對
+            self.MIDOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(self.frame) # 使用外部tag.py檔案進行比對
             self.update_angle = classTag.get_angle()
-            #self.message_information.insert(tk.END, f'Angle = {self.update_angle} \n')
 
-        if self.putintersection:
-           cv2.circle(frame, (int(tag_intersection.intersection_x), int(tag_intersection.intersection_y)), 1, (0, 0, 255), 4)
-        
+        if self.put_intersection_point:
+            
+            cv2.circle(self.frame, (int(tag_intersection.intersection_x), int(tag_intersection.intersection_y)), 1, (0, 0, 255), 4)
+
         if self.region: 
-            cv2.line(frame, (350, 80), (900, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)    
-            cv2.line(frame, (900, 80), (900, 600), (255, 50, 0), 2, lineType=cv2.LINE_8)    
-            cv2.line(frame, (900, 600), (350, 600), (255, 50, 0), 2, lineType=cv2.LINE_8)    
-            cv2.line(frame, (350, 600), (350, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)
+            cv2.line(self.frame, (350, 80), (900, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)    
+            cv2.line(self.frame, (900, 80), (900, 630), (255, 50, 0), 2, lineType=cv2.LINE_8)    
+            cv2.line(self.frame, (900, 630), (350, 630), (255, 50, 0), 2, lineType=cv2.LINE_8)    
+            cv2.line(self.frame, (350, 630), (350, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)
 
         # 將OpenCV圖像格式轉換為PIL圖像格式
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
+        image = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)      
  
         image = Image.fromarray(image)
                 
@@ -235,7 +252,21 @@ class App:
     def create_messagebox(self, messagebox_text, pop_text):
         tkinter.messagebox.showwarning(title = messagebox_text, # 視窗標題
                                     message = pop_text)
-    
+        
+    def intersection(self):
+        
+        tag_intersection.intersection(self.frame)
+
+        if (tag_intersection.intersection_x < 350 or tag_intersection.intersection_x > 900) or (tag_intersection.intersection_y > 600 or tag_intersection.intersection_y < 80) :
+                messagebox_text = '警告'
+                pop_text = '畫面中的 AprilTag 交點已超出使用範圍'
+                self.create_messagebox(messagebox_text, pop_text)
+                
+        elif self.put_intersection_point != True:        
+            self.message_information.insert(tk.END,'INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(tag_intersection.intersection_x, tag_intersection.intersection_y)+ "\n")
+        
+        self.put_intersection_point = not self.put_intersection_point
+
     def mark_region(self):
         self.region = not self.region
 
@@ -251,25 +282,8 @@ class App:
         self.message_information.insert(tk.END, f'Target X : {self.target_x} Target Y : {self.target_y} \n')
 
     def toggle_tag_detector(self):
-        
-        self. tagdetect = not self. tagdetect
+        self.tagdetect = not self. tagdetect
 
-    def put_intersection(self):
-        self.putintersection = not self.putintersection
-
-    # ------------------------------------------ ↓ 計算 MSRR 延伸線之交點 ↓ ------------------------------------------ #
-    def intersection(self):
-        tag_intersection.intersection(self)
-
-        if (tag_intersection.intersection_x < 350 or tag_intersection.intersection_x > 900) or (tag_intersection.intersection_y > 600 or tag_intersection.intersection_y < 80) :
-           messagebox_text = 'Warning'
-           pop_text = 'Intersection Point is out of range ！ '
-           self.create_messagebox(messagebox_text, pop_text)
-        else:
-            self.putintersection = not self.putintersection
-
-        self.message_information.insert(tk.END,'INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(tag_intersection.intersection_x, tag_intersection.intersection_y)+ "\n")
-    
     def clearBox(self): # 清除 Response 訊息框中的所有訊息
 
         self.message_response.delete("1.0", "end")
@@ -290,7 +304,7 @@ class App:
 
     def send_command(self,command):
 # ----------------------- ↓ Socket 客戶端 ↓ ----------------------- #
-        data='Connect fail!'.encode('utf-8')
+        data='連結失敗!'.encode('utf-8')
         # 連接到TCP服務器
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -332,87 +346,113 @@ class App:
         self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
 
     def connect_fcn(self): # 啟動連結之功能
-        global position_error, step
+        
         self.OEM = 0 # Orientation Error of MSRR (移動前之角度 - 移動時之角度)
         self.step = 0
         self.position_error = 0
+        self.position_error_mm = 0
+        
+        if HOST != '0.0.0.0':
+            try:
+                self.data='Connect fail!'.encode('utf-8')
 
-        try:
-            self.data='Connect fail!'.encode('utf-8')
-
-            self.connect_function = not self.connect_function
-            
-        except ValueError as VE:
-            
-            self.message_information.insert(tk.END,f'Error : {VE} ' )
+                self.connect_function = not self.connect_function
+                
+            except ValueError as VE:
+                
+                self.message_information.insert(tk.END,f'Error : {VE} ' )
+        else:
+            messagebox_text = '警告'
+            pop_text = '請選擇一個模組化自重組機器人'
+            self.create_messagebox(messagebox_text, pop_text)
 
         def reading_error(): # 讀取主動之 MSRR 距離目標 Intersection Point 之位置差
 
             if self.connect_function == True:
                 self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
-                
-                self.message_information.insert(tk.END, f'Distance : {self.position_error} \n')
-                time.sleep(0.2)
+                self.position_error_mm = self.position_error * 0.715 # 將位置誤差單位由 pixel 轉成 mm
+
+                # self.message_information.insert(tk.END, f'Distance : {self.position_error/0.715} mm\n')
+
                 send_connect_command()
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
             if self.connect_function == True:
-
+                command = '__Fail__'
                 inter_x = tag_intersection.intersection_x # 交會點 x 座標
                 inter_y = tag_intersection.intersection_y # 交會點 y 座標
 
-                command = '__Fail__' # 移動之命令
                 step_bool = False
                 
                 Kpo = 5 # 控制方向之 P-Control 參數 Kp_orientation
-                Kp = 0.005 # P-Control 數值
+                Kp = 0.046 # P-Control 數值
       
-                self.OEM = self.update_angle[1] - int(self.OAM)
-
+                self.OEM = self.update_angle[0] - self.OAM
+                
                 u = 3000/(Kp * self.position_error)
 
                 uR = 65535 # 右輪控制參數
                 uL = 65535 # 左輪控制參數
 
                 if self.OEM > 0:
-                    uR = int(u + (self.OEM * Kpo))
-                    uL = int(u - (self.OEM * Kpo))
-
-                elif self.OEM < 0:
                     uR = int(u - (self.OEM * Kpo))
                     uL = int(u + (self.OEM * Kpo))
 
+                    if uR < 0:
+                        uR = 0
+                elif self.OEM < 0:
+                    uR = int(u + (self.OEM * Kpo))
+                    uL = int(u - (self.OEM * Kpo))
 
+                    if uL < 0:
+                        uL = 0
+
+                elif self.OEM == 0:
+                    uR = int(u)
+                    uL = int(u)
+
+                print('u: ', u, 'uR: ', uR, 'uL: ', uL)
                 # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
                 if uR > 65535: 
                     uR = 65535
 
                 if uL > 65535:
                     uL = 65535 
-                
+
                 match self.step:
+                    
                     case 0: # 若目前是尚未執行連結功能的狀態，則執行連結步驟 "1"
+                        print('Case 0')
                         if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.OAM < 360):
                             command = '_Forward'
+                            print('111111')
                         elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.OAM < 180):
                             command = 'Backward'
+                            print('22222')
                         elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.OAM < 270):
                             command = '_Forward'
+                            print('333333')
                         elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.OAM < 90):
                             command = 'Backward'
+                            print('44444')
                         elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.OAM < 180):
                             command ='_Forward'
+                            print('555555')
                         elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.OAM < 360):
                             command = 'Backward'
+                            print('666666')
                         elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.OAM < 90):
                             command = '_Forward'
+                            print('777777')
                         elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.OAM < 270):
                             command = 'Backward'
+                            print('888888')
 
-                        if self.position_error <= 3:
+                        if self.position_error_mm <= 1:
                             self.step = 1
                             
                     case 1: # 若已完成連結步驟 "1"，則執行步驟 "2"
+                        print('Case 1')
                         if self.ERROR_OF_ANGLE <= 3:
                             step_bool = True
                             self.step = 2
@@ -424,10 +464,11 @@ class App:
                                 command = '____Left'
                             
                     case 2: # 若已完成連結步驟 "2"，則執行步驟 "3"
-                    
+                        print('Case 2')
                         self.step = 3     
 
                     case 3: # 若已完成連結步驟 "3"，則執行步驟 "4"
+                        print('Case 3')
                         command = '_Connect'
                         uR = 65535    
                         uL = 65535
@@ -439,7 +480,7 @@ class App:
                         self.create_messagebox(message_response, pop_text)
 
 # ----------------------------------------------------------- 發送移動命令與控制訊號 ----------------------------------------------------------- #
-                data='Connect fail!'.encode('utf-8')
+                data='連結失敗!'.encode('utf-8')
                 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # 連接到TCP服務器
 
@@ -448,15 +489,16 @@ class App:
                 try:
                     
                     sock.connect((HOST, PORT))
-                    sock.settimeout(0.2)
+                    #sock.settimeout(0.2)
                     # 傳送指令
                     sock.sendall(pack_data)
 
                     # 接收回應
                     data = sock.recv(BUFFER_SIZE)
-                    print(self.step)
+                   
                 except Exception as e:
-                    self.message_information.insert(tk.END, f'{e} \n')
+                    pass
+
                 finally:
                     sock.close()
 
@@ -467,8 +509,8 @@ class App:
                 nowsec = str(now.second)
                 self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
 
-                thread_reading_error.join() # 等待
-                time.sleep(0.2)
+                #thread_reading_error.join() # 等待
+
                 reading_error()
 
         # ---------------------------- 執行緒之設定與啟動 ---------------------------- #
