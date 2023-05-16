@@ -117,4 +117,4 @@ pixels_per_mm = dist_pixels / dist_real
 
 print('Dist Pixels = ', dist_pixels, 'Dist real = ', dist_real)
 print('像素與實際長度的換算關係為:', pixels_per_mm, 'pixels/mm')
-print(f'Distance = {dist_pixels/0.71} mm ')
+print(f'Distance = {dist_pixels/pixels_per_mm} mm ')

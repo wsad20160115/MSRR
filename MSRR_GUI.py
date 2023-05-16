@@ -8,9 +8,9 @@ import time
 from PIL import Image, ImageTk
 import struct
 import numpy as np
-import glob
+import calibration_frame
 import sys
-import calibration
+
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
 import tag_intersection # 引用 tag_intersection 用以找出兩 MSRR 之交點 
 
@@ -103,9 +103,10 @@ class App:
         col5 = 700
         col6 = 770
 
-        self.submit_button = tk.Button(master, width = button_width, height = 2, text="Clear Message", command=self.clearBox)
-        self.submit_button.place(x=250, y=355)
-        
+        self.submit_button = tk.Button(master, width = 10, height = 2, text="Clear\n Message", command=self.clearBox)
+        self.submit_button.place(x=220, y=356)
+        self.submit_button = tk.Button(master, width = 10, height = 2, text="Calibration", command=self.calibrate)
+        self.submit_button.place(x=320, y=356)
         # ----------------------------------------------------- 主要 Button 區設定 ----------------------------------------------------- #
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect", command=lambda: self.send_command("_Connect"))
         self.submit_button.place(x=row1, y=col1)
@@ -141,7 +142,7 @@ class App:
         self.submit_button.place(x=row1, y=col6)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
         self.submit_button.place(x=row2, y=col6)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.calibrate)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.region)
         self.submit_button.place(x=row3, y=col6)
 
         # 訊息框說明
@@ -198,9 +199,9 @@ class App:
     def update_video(self):
         # 從攝影機捕捉一張畫面
         ret, frame = self.cam.read()
-        if self.cal:
 
-            calibration.show_calibration(frame)
+        if self.cal:
+           frame =  calibration_frame.calibration(frame)
 
         if self.tagdetect:
             self.MIDOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(frame) # 使用外部tag.py檔案進行比對
@@ -279,7 +280,6 @@ class App:
         ANGLE_OF_MSRR = classTag.get_angle()
         self.OAM = ANGLE_OF_MSRR[0]  # 讀取要移動之MSRR原先的AprilTag角度 {Original Angle of MSRR}
         self.message_information.insert(tk.END, f'Angle of MSRR : {ANGLE_OF_MSRR} \n')
-      
     
     def snapshot(self):
 
