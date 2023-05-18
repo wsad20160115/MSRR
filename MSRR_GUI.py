@@ -331,12 +331,14 @@ class App:
         elif uL < 0:
             uL = 0
 
-        movecommand = command
-        pack_data = struct.pack('ii8s', uR, uL, movecommand.encode()) # 將右輪、左輪、移動方式包裝成 "struct" 一次發送給開發板
+        pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪、左輪、移動方式包裝成 "struct" 一次發送給開發板
         
         try:
             sock.connect((HOST, PORT))
-            sock.settimeout(3)
+            if command == '_Connect' or 'Dconnect':
+                sock.settimeout(3)
+            else:
+                sock.settimeout(0.3)
             # 傳送指令
             sock.sendall(pack_data)
 
@@ -474,10 +476,10 @@ class App:
                         self.step = 5
                         self.create_messagebox(message_response, pop_text)
 
-                Kpo = 20 # 控制方向之 P-Control 參數 Kp_orientation
+                Kpo = 100 # 控制方向之 P-Control 參數 Kp_orientation
                 Kp = 0.046 # P-Control 數值
       
-                self.OEM = self.update_angle[1] - self.OAM
+                self.OEM = self.update_angle[0] - self.OAM
                 
                 u = 3000/(Kp * self.position_error)
 
@@ -486,8 +488,8 @@ class App:
 
                 if command == '_Forward': # 設定移動模式若為"前進"之左右輪控制器
                     if self.OEM > 0:
-                        uR = int(u - (self.OEM * Kpo))
-                        uL = int(u + (self.OEM * Kpo))
+                        uR = int(u + (self.OEM * Kpo))
+                        uL = int(u - (self.OEM * Kpo))
 
                         if uR < 0:
                             uR = 0
@@ -519,12 +521,12 @@ class App:
                     uL = int(u)               
 
                 # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
-                if uR > 65535: 
+                if uR > 50000: 
                     uR = 65535
                 elif uR < 0:
                     uR = 0
 
-                if uL > 65535:
+                if uL > 50000:
                     uL = 65535 
                 elif uL < 0:
                     uL = 0
@@ -536,8 +538,7 @@ class App:
 
                 pack_data = struct.pack('ii8s', uR, uL, command.encode())
                 
-                try:
-                    
+                try:                    
                     sock.connect((HOST, PORT))
                     #sock.settimeout(0.2)
                     # 傳送指令
