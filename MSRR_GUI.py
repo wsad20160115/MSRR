@@ -23,7 +23,7 @@ BUFFER_SIZE = 1024
 
 # 設定視窗初始大小
 win_width = 1750
-win_height = 850
+win_height = 900
 
 END_AD_POSITIONS = []
 END_BC_POSITIONS = []
@@ -146,7 +146,7 @@ class App:
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.mark_region)
         self.submit_button.place(x=row3, y=col6)
 
-        # 訊息框說明
+        # 訊息框文字
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
         self.message_label.place(x=18, y=55)
         
@@ -154,13 +154,25 @@ class App:
         self.message_response = tk.Text(master, width=58, height=20)        
         self.message_response.place(x=18, y=80)
         
+        # 設定訊息框的滾動條
+        response_scrollbar = tk.Scrollbar(master)
+        response_scrollbar.place(x=430, y=80, height=265)
+        self.message_response.config(yscrollcommand=response_scrollbar.set)
+        response_scrollbar.config(command=self.message_response.yview)
+
         # 訊息框日期
         self.date_text = tk.Label(master, text=self.now_date, font=('Arial', '13'))
         self.date_text.place(x=340, y=55)
 
         # 其他資訊
-        self.message_information = tk.Text(master, width=50, height=8)        
-        self.message_information.place(x=1360, y=730)
+        self.message_information = tk.Text(master, width=50, height=12)        
+        self.message_information.place(x=1340, y=730)
+
+        # 設定訊息框的滾動條
+        information_scrollbar = tk.Scrollbar(master)
+        information_scrollbar.place(x=1690, y=730, height=160)
+        self.message_information.config(yscrollcommand=information_scrollbar.set)
+        information_scrollbar.config(command=self.message_information.yview)
 
         options = [ #設定連結開發板之IP
             "Choose Master MSRR",
@@ -186,7 +198,7 @@ class App:
         font = ('Courier New', 16, 'bold')
         self.scale = tk.Scale(
             label='PWM Pulse Width', font=font, orient=tk.HORIZONTAL, showvalue=True,
-            bg='white', fg='gray', tickinterval=10000, length=900, width=20,
+            bg='white', fg='gray', tickinterval=10000, length=800, width=20,
             troughcolor='gray', from_ = 0, to = 65535)
         self.scale.place(x=450, y=730)
 
@@ -198,6 +210,7 @@ class App:
 
     #------------------ ↓ 顯示影像 ↓ ------------------#       
     def update_video(self):
+
         # 從攝影機捕捉一張畫面
         ret, self.frame = self.cam.read()
 
@@ -223,6 +236,7 @@ class App:
         if self.tagdetect:
             self.MIDOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(self.frame) # 使用外部tag.py檔案進行比對
             self.update_angle = classTag.get_angle()
+            cv2.putText(self.frame, 'Controled', (self.MIDOFMSRR[0]-55, self.MIDOFMSRR[1]+25), cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 0, 255), 2)
 
         if self.put_intersection_point:
             
@@ -257,7 +271,7 @@ class App:
         
         tag_intersection.intersection(self.frame)
 
-        if (tag_intersection.intersection_x < 350 or tag_intersection.intersection_x > 900) or (tag_intersection.intersection_y > 600 or tag_intersection.intersection_y < 80) :
+        if (tag_intersection.intersection_x < 0 or tag_intersection.intersection_x > 9000) or (tag_intersection.intersection_y > 6000 or tag_intersection.intersection_y < 0) :
                 messagebox_text = '警告'
                 pop_text = '畫面中的 AprilTag 交點已超出使用範圍'
                 self.create_messagebox(messagebox_text, pop_text)
@@ -292,15 +306,11 @@ class App:
     def input_angle(self): # 取得要移動之MSRR原先的AprilTag角度
         
         ANGLE_OF_MSRR = classTag.get_angle()
-        self.OAM = ANGLE_OF_MSRR[0]  # 讀取要移動之MSRR原先的AprilTag角度 {Original Angle of MSRR}
+        self.OAM = ANGLE_OF_MSRR[1]  # 讀取要移動之MSRR原先的AprilTag角度 {Original Angle of MSRR}
         self.message_information.insert(tk.END, f'Angle of MSRR : {ANGLE_OF_MSRR} \n')
     
     def snapshot(self):
-
-        ret, frame = self.cam.read()
-
-        if ret:
-            cv2.imwrite("./image/snapshot.jpg", frame)
+        cv2.imwrite("./image/snapshot.jpg", self.frame)
 
     def send_command(self,command):
 # ----------------------- ↓ Socket 客戶端 ↓ ----------------------- #
@@ -333,8 +343,7 @@ class App:
             # 接收回應
             data = sock.recv(BUFFER_SIZE)
         except Exception as e:
-
-            self.message_information.insert(tk.END, e)
+            self.message_information.insert(tk.END, f'{e} \n')
         finally:
             sock.close()
             
@@ -344,6 +353,8 @@ class App:
         nowmin = str(now.minute)
         nowsec = str(now.second)
         self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+        self.message_response.see(tk.END)
+        self.message_information.see(tk.END)
 
     def connect_fcn(self): # 啟動連結之功能
         
@@ -372,8 +383,6 @@ class App:
                 self.position_error = ((tag_intersection.intersection_x - self.MIDOFMSRR[0])**2 + (tag_intersection.intersection_y-self.MIDOFMSRR[1])**2)**0.5
                 self.position_error_mm = self.position_error * 0.715 # 將位置誤差單位由 pixel 轉成 mm
 
-                # self.message_information.insert(tk.END, f'Distance : {self.position_error/0.715} mm\n')
-
                 send_connect_command()
         	
         def send_connect_command(): # 將讀取之位置差之控制參數傳送給主動之 MSRR
@@ -382,74 +391,60 @@ class App:
                 inter_x = tag_intersection.intersection_x # 交會點 x 座標
                 inter_y = tag_intersection.intersection_y # 交會點 y 座標
 
-                step_bool = False
+                step_bool = False                
                 
-                Kpo = 5 # 控制方向之 P-Control 參數 Kp_orientation
-                Kp = 0.046 # P-Control 數值
-      
-                self.OEM = self.update_angle[0] - self.OAM
-                
-                u = 3000/(Kp * self.position_error)
-
-                uR = 65535 # 右輪控制參數
-                uL = 65535 # 左輪控制參數
-
-                if self.OEM > 0:
-                    uR = int(u - (self.OEM * Kpo))
-                    uL = int(u + (self.OEM * Kpo))
-
-                    if uR < 0:
-                        uR = 0
-                elif self.OEM < 0:
-                    uR = int(u + (self.OEM * Kpo))
-                    uL = int(u - (self.OEM * Kpo))
-
-                    if uL < 0:
-                        uL = 0
-
-                elif self.OEM == 0:
-                    uR = int(u)
-                    uL = int(u)
-
-                print('u: ', u, 'uR: ', uR, 'uL: ', uL)
-                # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
-                if uR > 65535: 
-                    uR = 65535
-
-                if uL > 65535:
-                    uL = 65535 
-
                 match self.step:
                     
                     case 0: # 若目前是尚未執行連結功能的狀態，則執行連結步驟 "1"
-                        print('Case 0')
-                        if inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.OAM < 360):
-                            command = '_Forward'
-                            print('111111')
-                        elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.OAM < 180):
-                            command = 'Backward'
-                            print('22222')
-                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.OAM < 270):
-                            command = '_Forward'
-                            print('333333')
-                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.OAM < 90):
-                            command = 'Backward'
-                            print('44444')
-                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.OAM < 180):
-                            command ='_Forward'
-                            print('555555')
-                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.OAM < 360):
-                            command = 'Backward'
-                            print('666666')
-                        elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.OAM < 90):
-                            command = '_Forward'
-                            print('777777')
-                        elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.OAM < 270):
-                            command = 'Backward'
-                            print('888888')
-
+                        
                         if self.position_error_mm <= 1:
                             self.step = 1
+
+                        # 交點在第一象限
+                        if inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (180 < self.OAM < 270):
+                            command = '_Forward'
+                            print('狀況 1')
+                        elif inter_x > self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (0 < self.OAM < 90):
+                            command = 'Backward'
+                            print('狀況 2')
+
+                        # 交點在第二象限
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (270 < self.OAM < 360):
+                            command = '_Forward'
+                            print('狀況 3')
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y < self.MIDOFMSRR[1] and (90 < self.OAM < 180):
+                            command ='Backward'
+                            print('狀況 4')
+                        
+                        # 交點在第三象限     
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (0 < self.OAM < 90):
+                            command = '_Forward'
+                            print('狀況 5')
+                        elif inter_x < self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (180 < self.OAM < 270):
+                            command = 'Backward'
+                            print('狀況 6')
+
+                        # 交點在第四象限
+                        elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (90 < self.OAM < 180):
+                            command = '_Forward'
+                            print('狀況 7')
+                        elif inter_x > self.MIDOFMSRR[0] and inter_y > self.MIDOFMSRR[1] and (270 < self.OAM < 360):
+                            command = 'Backward'
+                            print('狀況 8')                            
+                        
+                        else:
+                            if inter_x > self.MIDOFMSRR[0]:
+                                print('X > M')
+                            elif inter_x < self.MIDOFMSRR[0]:
+                                print('X < M')
+
+                            if inter_y > self.MIDOFMSRR[1]:
+                                print('Y > M')
+                            elif inter_y < self.MIDOFMSRR[1]:
+                                print('Y < M')
+                            
+                            print('OAM = ', self.OAM)
+                            print('例外狀況，請排除障礙')                        
                             
                     case 1: # 若已完成連結步驟 "1"，則執行步驟 "2"
                         print('Case 1')
@@ -478,6 +473,61 @@ class App:
                         pop_text = 'Assemble finished'
                         self.step = 5
                         self.create_messagebox(message_response, pop_text)
+
+                Kpo = 20 # 控制方向之 P-Control 參數 Kp_orientation
+                Kp = 0.046 # P-Control 數值
+      
+                self.OEM = self.update_angle[1] - self.OAM
+                
+                u = 3000/(Kp * self.position_error)
+
+                uR = 65535 # 右輪控制參數
+                uL = 65535 # 左輪控制參數
+
+                if command == '_Forward': # 設定移動模式若為"前進"之左右輪控制器
+                    if self.OEM > 0:
+                        uR = int(u - (self.OEM * Kpo))
+                        uL = int(u + (self.OEM * Kpo))
+
+                        if uR < 0:
+                            uR = 0
+
+                    elif self.OEM < 0:
+                        uR = int(u + (self.OEM * Kpo))
+                        uL = int(u - (self.OEM * Kpo))
+
+                        if uL < 0:
+                            uL = 0
+
+                elif command == 'Backward': # 設定移動模式若為"後退"之左右輪控制器
+                    if self.OEM > 0:
+                        uR = int(u + (self.OEM * Kpo))
+                        uL = int(u - (self.OEM * Kpo))
+
+                        if uR < 0:
+                            uR = 0
+
+                    elif self.OEM < 0:
+                        uR = int(u - (self.OEM * Kpo))
+                        uL = int(u + (self.OEM * Kpo))
+
+                        if uL < 0:
+                            uL = 0
+
+                if self.OEM == 0:
+                    uR = int(u)
+                    uL = int(u)               
+
+                # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
+                if uR > 65535: 
+                    uR = 65535
+                elif uR < 0:
+                    uR = 0
+
+                if uL > 65535:
+                    uL = 65535 
+                elif uL < 0:
+                    uL = 0
 
 # ----------------------------------------------------------- 發送移動命令與控制訊號 ----------------------------------------------------------- #
                 data='連結失敗!'.encode('utf-8')
@@ -508,7 +558,8 @@ class App:
                 nowmin = str(now.minute)
                 nowsec = str(now.second)
                 self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
-
+                self.message_response.see(tk.END)
+                self.message_information.see(tk.END)
                 #thread_reading_error.join() # 等待
 
                 reading_error()
