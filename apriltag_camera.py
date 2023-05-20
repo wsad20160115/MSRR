@@ -1,7 +1,16 @@
 import cv2
 import math
 import pupil_apriltags as apriltag
-import time
+import pickle
+
+with open('calibration_parameter.pkl', 'rb') as calibrate:
+    calib_params = pickle.load(calibrate)
+
+mtx = calib_params['mtx']
+dist = calib_params['dist']
+rvecs = calib_params['rvecs']
+tvecs = calib_params['tvecs']
+
 # 設定攝影機編號
 cam_id = 0
 

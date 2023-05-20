@@ -30,7 +30,7 @@ END_BC_POSITIONS = []
 
 class App:
 
-    global classTag, MIDOFMSRR, ANGLE_OF_MSRR, tagdetect, connect_function, ERROR_OF_ANGLE
+    global classTag, MIDOFMSRR, ANGLE_OF_MSRR, tagdetect, connect_function, ERROR_OF_ANGLE, stop_flag
     global target_x, target_y
 
     region = False # 標示繪製交會點區塊之Boolean函數
@@ -53,7 +53,8 @@ class App:
 
         self.tagdetect = False
         self.connect_function = False
-        
+        self.stop_flag = False
+
         self.master = master
         master.title("ACTL MSRR")
         master.iconbitmap('./ACTL72.ico')
@@ -196,7 +197,7 @@ class App:
             "192.168.0.101"
         ]
         var = tk.StringVar(master)
-        var.set(options[0])
+        var.set(options[2]) #設定初始控制之開發板 IP 為 192.168.50.55
         self.option_menu = tk.OptionMenu(master, var, *options)
         self.option_menu.place(x=22, y=355)
         self.option_menu.config(width=20,height=2)
@@ -208,19 +209,22 @@ class App:
             bg='white', fg='gray', tickinterval=10000, length=800, width=10,
             troughcolor='gray', from_ = 0, to = 65535)
         self.scale_PWM.place(x=450, y=730)
-
+        self.scale_PWM.set(1000)
+        
         font = ('Courier New', 12, 'bold')
         self.scale_Kpo = tk.Scale(
             label='Kpo', font=font, orient=tk.HORIZONTAL, showvalue=True,
             bg='white', fg='gray', tickinterval=100, length=800, width=10,
             troughcolor='gray', from_ = 0, to = 1000)
         self.scale_Kpo.place(x=450, y=820)
+        self.scale_Kpo.set(50) 
 
         def show(*e):
             global HOST
             HOST = var.get()
             
-        var.trace('w',show)
+        var.trace('w',show) # 當Option Menu(選擇控制的開發板IP) 被"改變"，則執行show函數，也就是將 HOST 設定為選單上的 IP
+        var.trace('r',show) # 當Option Menu(選擇控制的開發板IP) 被"讀取"，則執行show函數，也就是將 HOST 設定為選單上的 IP
 
     #------------------ ↓ 顯示影像 ↓ ------------------#       
     def update_video(self):
@@ -228,7 +232,7 @@ class App:
         # 從攝影機捕捉一張畫面
         ret, self.frame = self.cam.read()
 
-        if self.cal == False: #若按下影像校正鈕，則將畫面轉變為影像校正後之結果
+        if self.cal == False: #若按下影像校正鈕，則將畫面轉變為影像校正前之結果
             # 讀取影像校正檔案
             with open('calibration_parameter.pkl', 'rb') as calibrate:
                 calib_params = pickle.load(calibrate)
@@ -312,6 +316,7 @@ class App:
         self.target_x = self.input_x.get()
         self.target_y = self.input_y.get()
         self.message_information.insert(tk.END, f'Target X : {self.target_x} Target Y : {self.target_y} \n')
+        print(HOST)
 
     def toggle_tag_detector(self):
         self.tagdetect = not self. tagdetect
@@ -380,9 +385,13 @@ class App:
         self.message_information.see(tk.END)           
                         
     def command_with_control(self, command):
-
+        
+        self.stop_flag = not self.stop_flag
+        
         def control():
-            if self.tagdetect:
+            
+            if self.stop_flag == True:
+
                 data='連結失敗!'.encode('utf-8')
                 # 連接到TCP服務器
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -420,11 +429,10 @@ class App:
                         uL = int(self.scale_PWM.get() + (self.OEM * Kpo))
 
                 if command == '____Stop':
-                    self.tagdetect == False
+                    self.stop_flag == False
                     uR = 65535
                     uL = 65535
                     
-
                 # 防止計算出之數值溢位
                 if uR > 65535:
                     uR = 65535
@@ -435,7 +443,7 @@ class App:
                     uL = 65535
                 elif uL < 0:
                     uL = 0
-                 
+                
                 pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪、左輪、移動方式包裝成 "struct" 一次發送給開發板
                 
                 try:
@@ -464,8 +472,18 @@ class App:
 
                 control()
 
+        def output_error_of_control():
+            if self.stop_flag == True:
+                error_of_control = self.OEM
+                self.message_information.insert(tk.END, str(error_of_control))
+                time.sleep(0.1)
+
+                output_error_of_control()
+
         thread_command_with_control = threading.Thread(target= control)
         thread_command_with_control.start()
+        thread_output_error_of_control = threading.Thread(target= output_error_of_control)
+        thread_output_error_of_control.start()
 
     def connect_fcn(self): # 啟動連結之功能
         
