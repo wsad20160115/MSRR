@@ -46,6 +46,7 @@ class App:
     # 設定AprilTag檢測器啟用與關閉
     tagintersection = False
     toggle_get_angle = False
+    toggle_command_control = False
     put_intersection_point = False
 
     def __init__(self, master):  
@@ -103,6 +104,7 @@ class App:
         col4 = 630
         col5 = 700
         col6 = 770
+        col7 = 840
 
         self.submit_button = tk.Button(master, width = 10, height = 2, text="Clear\n Message", command=self.clearBox)
         self.submit_button.place(x=220, y=356)
@@ -145,7 +147,12 @@ class App:
         self.submit_button.place(x=row2, y=col6)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.mark_region)
         self.submit_button.place(x=row3, y=col6)
-
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Forward \n control", command=lambda: self.command_with_control('_Forward'))
+        self.submit_button.place(x=row1, y=col7)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Backward \n control", command=lambda: self.command_with_control('Backward'))
+        self.submit_button.place(x=row2, y=col7)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Stop \n control", command=lambda: self.command_with_control('____Stop'))
+        self.submit_button.place(x=row3, y=col7)
         # 訊息框文字
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
         self.message_label.place(x=18, y=55)
@@ -195,12 +202,19 @@ class App:
         self.option_menu.config(width=20,height=2)
         
          # 拉桿設定
-        font = ('Courier New', 16, 'bold')
-        self.scale = tk.Scale(
+        font = ('Courier New', 12, 'bold')
+        self.scale_PWM = tk.Scale(
             label='PWM Pulse Width', font=font, orient=tk.HORIZONTAL, showvalue=True,
-            bg='white', fg='gray', tickinterval=10000, length=800, width=20,
+            bg='white', fg='gray', tickinterval=10000, length=800, width=10,
             troughcolor='gray', from_ = 0, to = 65535)
-        self.scale.place(x=450, y=730)
+        self.scale_PWM.place(x=450, y=730)
+
+        font = ('Courier New', 12, 'bold')
+        self.scale_Kpo = tk.Scale(
+            label='Kpo', font=font, orient=tk.HORIZONTAL, showvalue=True,
+            bg='white', fg='gray', tickinterval=100, length=800, width=10,
+            troughcolor='gray', from_ = 0, to = 1000)
+        self.scale_Kpo.place(x=450, y=820)
 
         def show(*e):
             global HOST
@@ -284,6 +298,10 @@ class App:
     def mark_region(self):
         self.region = not self.region
 
+    def bool_command_control(self):
+
+        toggle_command_control = not toggle_command_control
+
     def calibrate(self):
         self.cal = not self.cal
 
@@ -317,10 +335,15 @@ class App:
         data='連結失敗!'.encode('utf-8')
         # 連接到TCP服務器
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if command == '_Connect' or 'Dconnect':
+            sock.settimeout(3)
+        else:
+            sock.settimeout(0.3)
+            
+        uR = self.scale_PWM.get()
+        uL = self.scale_PWM.get() 
 
-        uR = self.scale.get()
-        uL = self.scale.get()
-        
+        # 防止計算出之數值溢位
         if uR > 65535:
             uR = 65535
         elif uR < 0:
@@ -335,10 +358,7 @@ class App:
         
         try:
             sock.connect((HOST, PORT))
-            if command == '_Connect' or 'Dconnect':
-                sock.settimeout(3)
-            else:
-                sock.settimeout(0.3)
+            
             # 傳送指令
             sock.sendall(pack_data)
 
@@ -355,8 +375,97 @@ class App:
         nowmin = str(now.minute)
         nowsec = str(now.second)
         self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+        # 讓訊息框保持在能看到最後一則訊息
         self.message_response.see(tk.END)
-        self.message_information.see(tk.END)
+        self.message_information.see(tk.END)           
+                        
+    def command_with_control(self, command):
+
+        def control():
+            if self.tagdetect:
+                data='連結失敗!'.encode('utf-8')
+                # 連接到TCP服務器
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                uR = self.scale_PWM.get()
+                uL = self.scale_PWM.get() 
+
+                Kpo = self.scale_Kpo.get()
+
+                self.OEM = self.update_angle[0] - self.OAM
+
+                print('OEM', self.OEM)
+
+                if command == '_Forward':
+                    if self.OEM > 0:
+                        uR = int(self.scale_PWM.get() + (self.OEM * Kpo))
+                        uL = int(self.scale_PWM.get() - (self.OEM * Kpo))
+
+                        if uR < 0:
+                            uR = 0
+
+                    elif self.OEM < 0:
+                        uR = int(self.scale_PWM.get() + (self.OEM * Kpo))
+                        uL = int(self.scale_PWM.get() - (self.OEM * Kpo))
+
+                if command == 'Backward':
+                    if self.OEM > 0:
+                                uR = int(self.scale_PWM.get() + (self.OEM * Kpo))
+                                uL = int(self.scale_PWM.get() - (self.OEM * Kpo))
+
+                                if uR < 0:
+                                    uR = 0
+
+                    elif self.OEM < 0:
+                        uR = int(self.scale_PWM.get() - (self.OEM * Kpo))
+                        uL = int(self.scale_PWM.get() + (self.OEM * Kpo))
+
+                if command == '____Stop':
+                    self.tagdetect == False
+                    uR = 65535
+                    uL = 65535
+                    
+
+                # 防止計算出之數值溢位
+                if uR > 65535:
+                    uR = 65535
+                elif uR < 0:
+                    uR = 0
+                    
+                if uL > 65535:
+                    uL = 65535
+                elif uL < 0:
+                    uL = 0
+                 
+                pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪、左輪、移動方式包裝成 "struct" 一次發送給開發板
+                
+                try:
+                    sock.connect((HOST, PORT))               
+                    sock.settimeout(0.3)
+                    # 傳送指令
+                    sock.sendall(pack_data)
+
+                    # 接收回應
+                    data = sock.recv(BUFFER_SIZE)
+                except Exception as e:
+                    self.message_information.insert(tk.END, f'{e} \n')
+                
+                sock.close()
+                    
+                # 將回應顯示在訊息框中
+                now = datetime.datetime.now()
+                nowhour = str(now.hour)
+                nowmin = str(now.minute)
+                nowsec = str(now.second)
+                self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+                # 讓訊息框保持在能看到最後一則訊息
+                self.message_response.see(tk.END)
+                self.message_information.see(tk.END) 
+                time.sleep(0.1)
+
+                control()
+
+        thread_command_with_control = threading.Thread(target= control)
+        thread_command_with_control.start()
 
     def connect_fcn(self): # 啟動連結之功能
         
@@ -476,7 +585,8 @@ class App:
                         self.step = 5
                         self.create_messagebox(message_response, pop_text)
 
-                Kpo = 100 # 控制方向之 P-Control 參數 Kp_orientation
+                Kpo = self.scale_Kpo.get() # 控制方向之 P-Control 參數 Kp_orientation
+
                 Kp = 0.046 # P-Control 數值
       
                 self.OEM = self.update_angle[0] - self.OAM

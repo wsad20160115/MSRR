@@ -2,10 +2,19 @@ import cv2
 import pupil_apriltags as apriltag
 import math
 import numpy as np
+import pickle
 
 image = cv2.imread('./image/snapshot.jpg')
 # image = cv2.flip(image, 1)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+with open('calibration_parameter.pkl', 'rb') as calibrate:
+    calib_params = pickle.load(calibrate)
+
+mtx = calib_params['mtx']
+dist = calib_params['dist']
+rvecs = calib_params['rvecs']
+tvecs = calib_params['tvecs']
 
 i = 0
 j = 0
@@ -21,6 +30,8 @@ END_BC_POSITIONS = []
 options = apriltag.Detector(families='tag36h11')
 
 results = options.detect(gray)
+
+print(results)
 
 r_cen = (0, 0)
 
