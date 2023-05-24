@@ -498,8 +498,12 @@ class App:
         def output_error_of_control():
 
             if self.stop_flag == True:
-                error_of_control = self.OEM
-                self.message_information.insert(tk.END, f'{str(error_of_control)} \n')
+                try:
+                    error_of_control = self.OEM
+                    self.message_information.insert(tk.END, f'{str(error_of_control)} \n')
+                except Exception as exc:
+                    self.message_information.insert(tk.END, f'{exc} \n')
+
                 time.sleep(0.05)
             if self.stop_flag == True:
                 output_error_of_control()
