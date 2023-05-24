@@ -182,7 +182,10 @@ for r in results:
                 # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
             distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5
-            print('Distance (mm) = ', distance/0.559025768)                  
+           # print('Distance (mm) = ', distance/0.559025768)  
+            id = r.tag_id
+            print(id)  
+                          
 cv2.imshow('image', image)
 
 cv2.waitKey(0)

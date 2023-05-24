@@ -76,6 +76,8 @@ while True:
         cv2.line(image, c, d, (255, 0, 255), 1, lineType=cv2.LINE_AA)
         cv2.line(image, d, a, (255, 0, 255), 1, lineType=cv2.LINE_AA)
 
+
+
         # 顯示 AprilTag 的中心座標
         (cX, cY) = (int(r.center[0]), int(r.center[1]))
 
@@ -172,10 +174,8 @@ while True:
                 angle_of_msrr[1] = angle_of_msrr[2]
 
             del angle_of_msrr[2]
-
         
-        print("Angle of MSRR : ", angle_of_msrr)
-
+        
         # ↓ 繪製延伸線段中點連線 ↓ #
         cv2.line(image, end_ad, end_bc, (255, 255, 0), 2, lineType=cv2.LINE_8)
 
@@ -189,9 +189,14 @@ while True:
         # cv2.putText(image, 'b', (b[0], b[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)        
         # cv2.putText(image, 'c', (c[0], c[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)
         # cv2.putText(image, 'd', (d[0], d[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)
-        cv2.putText(image, str(quadrant), (cen[0]-35, cen[1]+5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)  
-        cv2.putText(image, str(mid_ad), (mid_ad_x, mid_ad_y), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255), 1 )
+        #cv2.putText(image, str(quadrant), (cen[0]-35, cen[1]+5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)  
+        #cv2.putText(image, str(mid_ad), (mid_ad_x, mid_ad_y), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255), 1 )
 
+        cv2.putText(image, 'a', (a[0], a[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (250, 0, 0), 2)
+        # cv2.putText(image, 'b', (b[0], b[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+        # cv2.putText(image, 'c', (c[0], c[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+        cv2.putText(image, 'd', (d[0], d[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (250, 0, 0), 2)
+        
     cv2.imshow('AprilTag', image)
         
     if cv2.waitKey(1) & 0xFF == 27:

@@ -23,23 +23,23 @@ BUFFER_SIZE = 1024
 
 # 設定視窗初始大小
 win_width = 1750
-win_height = 900
+win_height = 930
 
 END_AD_POSITIONS = []
 END_BC_POSITIONS = []
 
 class App:
 
-    global classTag, MIDOFMSRR, ANGLE_OF_MSRR, tagdetect, connect_function, ERROR_OF_ANGLE, stop_flag
+    global MIDOFMSRR, ANGLE_OF_MSRR, tagdetect, connect_function, ERROR_OF_ANGLE, stop_flag, option_ID
     global target_x, target_y
 
     region = False # 標示繪製交會點區塊之Boolean函數
     cal = False
 
     target_x = 0
-    target_y = 0
+    target_y = 0    
+
     
-    classTag = tag_detector.Tag()
 
     now_date = datetime.date.today()
 
@@ -50,6 +50,8 @@ class App:
     put_intersection_point = False
 
     def __init__(self, master):  
+
+        self.option_ID = 100
 
         self.tagdetect = False
         self.connect_function = False
@@ -184,20 +186,20 @@ class App:
 
         options = [ #設定連結開發板之IP
             "Choose Master MSRR",
-            "192.168.50.14",
-            "192.168.50.55",
-            "192.168.50.60",
-            "192.168.50.142",
-            "192.168.50.156", 
-            "192.168.50.176",
-            "192.168.50.208",           
-            "192.168.50.220",
-            "192.168.50.234",       
-            "192.168.50.239",
-            "192.168.0.101"
+            "192.168.50.14, 0", 
+            "192.168.50.55, 1",
+            "192.168.50.60, 2",
+            "192.168.50.142, 3",
+            "192.168.50.156, 4", 
+            "192.168.50.176, 5",
+            "192.168.50.208, 6",           
+            "192.168.50.220, 7",
+            "192.168.50.234, 8",       
+            "192.168.50.239, 9",
+            "192.168.0.101, 10"
         ]
         var = tk.StringVar(master)
-        var.set(options[2]) #設定初始控制之開發板 IP 為 192.168.50.55
+        var.set(options[0]) #設定初始控制之開發板 IP 為 192.168.50.55
         self.option_menu = tk.OptionMenu(master, var, *options)
         self.option_menu.place(x=22, y=355)
         self.option_menu.config(width=20,height=2)
@@ -209,7 +211,7 @@ class App:
             bg='white', fg='gray', tickinterval=10000, length=800, width=10,
             troughcolor='gray', from_ = 0, to = 65535)
         self.scale_PWM.place(x=450, y=730)
-        self.scale_PWM.set(1000)
+        
         
         font = ('Courier New', 12, 'bold')
         self.scale_Kpo = tk.Scale(
@@ -221,10 +223,15 @@ class App:
 
         def show(*e):
             global HOST
-            HOST = var.get()
+            MSRR_information = var.get()
+            MSRR_information = MSRR_information.split(', ')
             
+            HOST = MSRR_information[0]
+            self.option_ID = MSRR_information[1] # 選定控制的 MSRR AprilTag ID
+            
+
         var.trace('w',show) # 當Option Menu(選擇控制的開發板IP) 被"改變"，則執行show函數，也就是將 HOST 設定為選單上的 IP
-        var.trace('r',show) # 當Option Menu(選擇控制的開發板IP) 被"讀取"，則執行show函數，也就是將 HOST 設定為選單上的 IP
+        
 
     #------------------ ↓ 顯示影像 ↓ ------------------#       
     def update_video(self):
@@ -252,9 +259,12 @@ class App:
             self.frame=cv2.remap(self.frame,mapx,mapy,cv2.INTER_LINEAR)
 
         if self.tagdetect:
-            self.MIDOFMSRR, self.ERROR_OF_ANGLE = classTag.tag(self.frame) # 使用外部tag.py檔案進行比對
-            self.update_angle = classTag.get_angle()
-            cv2.putText(self.frame, 'Controled', (self.MIDOFMSRR[0]-55, self.MIDOFMSRR[1]+25), cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 0, 255), 2)
+            tag_detector.tag(self.frame)
+            self.MIDOFMSRR = tag_detector.mid_ad
+            self.ERROR_OF_ANGLE = tag_detector.error_of_angle # 使用外部tag.py檔案進行比對
+            self.tag_id = tag_detector.tag_id
+            self.update_angle = tag_detector.get_angle()       
+                                 
 
         if self.put_intersection_point:
             
@@ -265,6 +275,7 @@ class App:
             cv2.line(self.frame, (900, 80), (900, 630), (255, 50, 0), 2, lineType=cv2.LINE_8)    
             cv2.line(self.frame, (900, 630), (350, 630), (255, 50, 0), 2, lineType=cv2.LINE_8)    
             cv2.line(self.frame, (350, 630), (350, 80), (255, 50, 0), 2, lineType=cv2.LINE_8)
+
 
         # 將OpenCV圖像格式轉換為PIL圖像格式
         image = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)      
@@ -300,7 +311,7 @@ class App:
         self.put_intersection_point = not self.put_intersection_point
 
     def mark_region(self):
-        self.region = not self.region
+        print(HOST)
 
     def bool_command_control(self):
 
@@ -319,8 +330,9 @@ class App:
         print(HOST)
 
     def toggle_tag_detector(self):
+        
         self.tagdetect = not self. tagdetect
-
+    
     def clearBox(self): # 清除 Response 訊息框中的所有訊息
 
         self.message_response.delete("1.0", "end")
@@ -328,10 +340,17 @@ class App:
 
     def input_angle(self): # 取得要移動之MSRR原先的AprilTag角度
         
-        ANGLE_OF_MSRR = classTag.get_angle()
-        self.OAM = ANGLE_OF_MSRR[1]  # 讀取要移動之MSRR原先的AprilTag角度 {Original Angle of MSRR}
+        ANGLE_OF_MSRR = tag_detector.get_angle()
+        try:
+            self.OAM = ANGLE_OF_MSRR[int(self.option_ID)]  # 讀取要移動之MSRR原先的AprilTag角度 {Original Angle of MSRR}
+            print('OAM: ', self.OAM)
+        except Exception as exc:
+            messagebox_text = 'Warning'
+            pop_text = exc
+            self.create_messagebox(messagebox_text, pop_text)
+
         self.message_information.insert(tk.END, f'Angle of MSRR : {ANGLE_OF_MSRR} \n')
-    
+        
     def snapshot(self):
         cv2.imwrite("./image/snapshot.jpg", self.frame)
 
@@ -341,7 +360,7 @@ class App:
         # 連接到TCP服務器
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if command == '_Connect' or 'Dconnect':
-            sock.settimeout(3)
+            sock.settimeout(0.3)
         else:
             sock.settimeout(0.3)
             
@@ -359,7 +378,7 @@ class App:
         elif uL < 0:
             uL = 0
 
-        pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪、左輪、移動方式包裝成 "struct" 一次發送給開發板
+        pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪PWM、左輪PWM、移動方式包裝成 "struct" 一次發送給開發板
         
         try:
             sock.connect((HOST, PORT))
@@ -383,7 +402,10 @@ class App:
         # 讓訊息框保持在能看到最後一則訊息
         self.message_response.see(tk.END)
         self.message_information.see(tk.END)           
-                        
+        
+        thread_send_command = threading.Thread(target= self.send_command)
+        thread_send_command.start()
+
     def command_with_control(self, command):
         
         self.stop_flag = not self.stop_flag
@@ -399,10 +421,10 @@ class App:
                 uL = self.scale_PWM.get() 
 
                 Kpo = self.scale_Kpo.get()
+               
+                self.OEM = self.update_angle[int(self.option_ID)] - self.OAM
 
-                self.OEM = self.update_angle[0] - self.OAM
-
-                print('OEM', self.OEM)
+                print(f'{self.update_angle[int(self.option_ID)]} - {self.OAM} = {self.OEM}')
 
                 if command == '_Forward':
                     if self.OEM > 0:
@@ -433,6 +455,7 @@ class App:
                     uR = 65535
                     uL = 65535
                     
+
                 # 防止計算出之數值溢位
                 if uR > 65535:
                     uR = 65535
@@ -468,22 +491,24 @@ class App:
                 # 讓訊息框保持在能看到最後一則訊息
                 self.message_response.see(tk.END)
                 self.message_information.see(tk.END) 
-                time.sleep(0.1)
-
-                control()
+                time.sleep(0.05)
+                if self.stop_flag == True:
+                    control()
 
         def output_error_of_control():
+
             if self.stop_flag == True:
                 error_of_control = self.OEM
-                self.message_information.insert(tk.END, str(error_of_control))
-                time.sleep(0.1)
-
+                self.message_information.insert(tk.END, f'{str(error_of_control)} \n')
+                time.sleep(0.05)
+            if self.stop_flag == True:
                 output_error_of_control()
 
-        thread_command_with_control = threading.Thread(target= control)
-        thread_command_with_control.start()
-        thread_output_error_of_control = threading.Thread(target= output_error_of_control)
-        thread_output_error_of_control.start()
+        if self.stop_flag == True:
+            thread_command_with_control = threading.Thread(target= control)
+            thread_command_with_control.start()
+            thread_output_error_of_control = threading.Thread(target= output_error_of_control)
+            thread_output_error_of_control.start()
 
     def connect_fcn(self): # 啟動連結之功能
         
