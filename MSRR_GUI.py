@@ -407,9 +407,13 @@ class App:
         thread_send_command.start()
 
     def command_with_control(self, command):
-        
-        self.stop_flag = not self.stop_flag
-        
+        if self.option_ID > 0 and self.option_ID < 10:
+            self.stop_flag = not self.stop_flag
+        else:
+            messagebox_text = 'Warning'
+            pop_text = '請選擇欲控制之 MSRR '
+            self.create_messagebox(messagebox_text, pop_text)
+
         def control():
             
             if self.stop_flag == True:
@@ -728,6 +732,81 @@ class App:
 
         thread_reading_error.start() # 啟動 reading_error 之 Thread
         thread_send_connect_command.start() # 啟動 send_connect_command 之 Thread
+    
+    def multi_control(self,command):
+        control_ip = []
+
+        if self.tag_id == 0:
+            control_ip.append("192.168.50.14") 
+        elif self.tag_id == 1:
+            control_ip = "192.168.50.55"
+        elif self.tag_id == 2:
+            control_ip = "192.168.50.60"
+        elif self.tag_id == 3:
+            control_ip = "192.168.50.142"
+        elif self.tag_id == 4:
+            control_ip = "192.168.50.156"
+        elif self.tag_id == 5:
+            control_ip = "192.168.50.176"
+        elif self.tag_id == 6:
+            control_ip = "192.168.50.208"
+        elif self.tag_id == 7:
+            control_ip = "192.168.50.220"
+        elif self.tag_id == 8:
+            control_ip = "192.168.50.234"
+        elif self.tag_id == 9:
+            control_ip = "192.168.50.239" 
+
+        for HOST in control_ip:
+            data='連結失敗!'.encode('utf-8')
+
+            # 連接到TCP服務器
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            
+            sock.settimeout(0.3)
+                
+            uR = self.scale_PWM.get()
+            uL = self.scale_PWM.get() 
+
+            # 防止計算出之數值溢位
+            if uR > 65535:
+                uR = 65535
+            elif uR < 0:
+                uR = 0
+                
+            if uL > 65535:
+                uL = 65535
+            elif uL < 0:
+                uL = 0
+
+            pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪PWM、左輪PWM、移動方式包裝成 "struct" 一次發送給開發板
+            
+            try:
+                sock.connect((HOST, PORT))
+                
+                # 傳送指令
+                sock.sendall(pack_data)
+
+                # 接收回應
+                data = sock.recv(BUFFER_SIZE)
+            except Exception as e:
+                self.message_information.insert(tk.END, f'{e} \n')
+            finally:
+                sock.close()
+                
+            # 將回應顯示在訊息框中
+            now = datetime.datetime.now()
+            nowhour = str(now.hour)
+            nowmin = str(now.minute)
+            nowsec = str(now.second)
+            self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+            # 讓訊息框保持在能看到最後一則訊息
+            self.message_response.see(tk.END)
+            self.message_information.see(tk.END)           
+            
+            thread_multi_control = threading.Thread(target= self.multi_control)
+            thread_multi_control.start()
+        
 
 # 建立主視窗
 root = tk.Tk()
