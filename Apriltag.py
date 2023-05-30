@@ -183,8 +183,7 @@ for r in results:
 
             distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5
            # print('Distance (mm) = ', distance/0.559025768)  
-            id = r.tag_id
-            print(id)  
+            
                           
 cv2.imshow('image', image)
 

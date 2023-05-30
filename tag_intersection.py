@@ -94,3 +94,4 @@ def intersection(frame):
                         # print(f"Intersection point: ({globals.intersection_x:.2f}, {globals.intersection_y:.2f})")
                     else:
                         print("Lines are parallel")
+    cv2.imshow('image', image)

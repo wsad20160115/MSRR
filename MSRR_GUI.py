@@ -138,17 +138,17 @@ class App:
         self.submit_button.place(x=row2, y=col4)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
         self.submit_button.place(x=row3, y=col4)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Move to \n target", command = self.move_to_target)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Move to \n target", command = self.multi_control("_Forward"))
         self.submit_button.place(x=row1, y=col5)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect\n Function", command=self.connect_fcn)
         self.submit_button.place(x=row2, y=col5)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Get\n Angle", command = self.input_angle)
         self.submit_button.place(x=row3, y=col5)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED On", command=lambda: self.send_command("__LED ON"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED On", command=lambda: self.multi_control("__LED ON"))
         self.submit_button.place(x=row1, y=col6)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.send_command("_LED OFF"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="LED OFF", command=lambda: self.multi_control("_LED OFF"))
         self.submit_button.place(x=row2, y=col6)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Mark Region", command= self.mark_region)
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Get All\n ID", command= self.get_id)
         self.submit_button.place(x=row3, y=col6)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Forward \n control", command=lambda: self.command_with_control('_Forward'))
         self.submit_button.place(x=row1, y=col7)
@@ -186,17 +186,12 @@ class App:
 
         options = [ #設定連結開發板之IP
             "Choose Master MSRR",
-            "192.168.50.14, 0", 
-            "192.168.50.55, 1",
-            "192.168.50.60, 2",
-            "192.168.50.142, 3",
-            "192.168.50.156, 4", 
-            "192.168.50.176, 5",
-            "192.168.50.208, 6",           
-            "192.168.50.220, 7",
-            "192.168.50.234, 8",       
-            "192.168.50.239, 9",
-            "192.168.0.101, 10"
+            "192.168.137.198, 0", 
+            "192.168.137.233, 1",
+            "192.168.137.91, 2",
+            "192.168.137.171, 3",
+            "192.168.137.194, 4", 
+            "192.168.137.211, 5"                   
         ]
         var = tk.StringVar(master)
         var.set(options[0]) #設定初始控制之開發板 IP 為 192.168.50.55
@@ -211,15 +206,8 @@ class App:
             bg='white', fg='gray', tickinterval=10000, length=800, width=10,
             troughcolor='gray', from_ = 0, to = 65535)
         self.scale_PWM.place(x=450, y=730)
-        
-        
-        font = ('Courier New', 12, 'bold')
-        self.scale_Kpo = tk.Scale(
-            label='Kpo', font=font, orient=tk.HORIZONTAL, showvalue=True,
-            bg='white', fg='gray', tickinterval=100, length=800, width=10,
-            troughcolor='gray', from_ = 0, to = 1000)
-        self.scale_Kpo.place(x=450, y=820)
-        self.scale_Kpo.set(50) 
+
+
 
         def show(*e):
             global HOST
@@ -300,22 +288,19 @@ class App:
         
         tag_intersection.intersection(self.frame)
 
-        if (tag_intersection.intersection_x < 0 or tag_intersection.intersection_x > 9000) or (tag_intersection.intersection_y > 6000 or tag_intersection.intersection_y < 0) :
-                messagebox_text = '警告'
-                pop_text = '畫面中的 AprilTag 交點已超出使用範圍'
-                self.create_messagebox(messagebox_text, pop_text)
+        # if (tag_intersection.intersection_x < 0 or tag_intersection.intersection_x > 9000) or (tag_intersection.intersection_y > 6000 or tag_intersection.intersection_y < 0) :
+        #         messagebox_text = '警告'
+        #         pop_text = '畫面中的 AprilTag 交點已超出使用範圍'
+        #         self.create_messagebox(messagebox_text, pop_text)
                 
-        elif self.put_intersection_point != True:        
-            self.message_information.insert(tk.END,'INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(tag_intersection.intersection_x, tag_intersection.intersection_y)+ "\n")
+        # elif self.put_intersection_point != True:        
+        self.message_information.insert(tk.END,'INTERSECTION_X = {:.2f}, INTERSECTION_Y = {:.2f}'.format(tag_intersection.intersection_x, tag_intersection.intersection_y)+ "\n")
         
         self.put_intersection_point = not self.put_intersection_point
 
-    def mark_region(self):
-        print(HOST)
-
-    def bool_command_control(self):
-
-        toggle_command_control = not toggle_command_control
+    def get_id(self):
+        self.list_of_tag_id = tag_detector.get_list_of_tag_id()
+        print(self.list_of_tag_id)
 
     def calibrate(self):
         self.cal = not self.cal
@@ -354,7 +339,7 @@ class App:
     def snapshot(self):
         cv2.imwrite("./image/snapshot.jpg", self.frame)
 
-    def send_command(self,command):
+    def send_command(self, command):
 # ----------------------- ↓ Socket 客戶端 ↓ ----------------------- #
         data='連結失敗!'.encode('utf-8')
         # 連接到TCP服務器
@@ -402,9 +387,7 @@ class App:
         # 讓訊息框保持在能看到最後一則訊息
         self.message_response.see(tk.END)
         self.message_information.see(tk.END)           
-        
-        thread_send_command = threading.Thread(target= self.send_command)
-        thread_send_command.start()
+
 
     def command_with_control(self, command):
         if self.option_ID > 0 and self.option_ID < 10:
@@ -424,7 +407,7 @@ class App:
                 uR = self.scale_PWM.get()
                 uL = self.scale_PWM.get() 
 
-                Kpo = self.scale_Kpo.get()
+                Kpo = 90
                
                 self.OEM = self.update_angle[int(self.option_ID)] - self.OAM
 
@@ -636,7 +619,7 @@ class App:
                         self.step = 5
                         self.create_messagebox(message_response, pop_text)
 
-                Kpo = self.scale_Kpo.get() # 控制方向之 P-Control 參數 Kp_orientation
+                Kpo = 90 # 控制方向之 P-Control 參數 Kp_orientation
 
                 Kp = 0.046 # P-Control 數值
       
@@ -733,81 +716,76 @@ class App:
         thread_reading_error.start() # 啟動 reading_error 之 Thread
         thread_send_connect_command.start() # 啟動 send_connect_command 之 Thread
     
-    def multi_control(self,command):
-        control_ip = []
+    def multi_control(self, command):
+        control_ip = [] # 設定
+        j = 0
 
-        if self.tag_id == 0:
-            control_ip.append("192.168.50.14") 
-        elif self.tag_id == 1:
-            control_ip = "192.168.50.55"
-        elif self.tag_id == 2:
-            control_ip = "192.168.50.60"
-        elif self.tag_id == 3:
-            control_ip = "192.168.50.142"
-        elif self.tag_id == 4:
-            control_ip = "192.168.50.156"
-        elif self.tag_id == 5:
-            control_ip = "192.168.50.176"
-        elif self.tag_id == 6:
-            control_ip = "192.168.50.208"
-        elif self.tag_id == 7:
-            control_ip = "192.168.50.220"
-        elif self.tag_id == 8:
-            control_ip = "192.168.50.234"
-        elif self.tag_id == 9:
-            control_ip = "192.168.50.239" 
+        if 0 in self.list_of_tag_id:
+            control_ip.append("192.168.137.198") 
 
-        for HOST in control_ip:
-            data='連結失敗!'.encode('utf-8')
+        elif 1 in self.list_of_tag_id:
+            control_ip.append("192.168.137.233") 
 
-            # 連接到TCP服務器
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            
-            sock.settimeout(0.3)
+        elif 2 in self.list_of_tag_id:
+            control_ip.append("192.168.137.91") 
+
+        elif 3 in self.list_of_tag_id:
+            control_ip.append("192.168.50.171") 
+
+        elif 4 in self.list_of_tag_id:
+            control_ip.append("192.168.50.194") 
+
+        elif 5 in self.list_of_tag_id:
+            control_ip.append("192.168.50.211")
+
+        for j in range (5):
+            for HOST in control_ip:
+                data='連結失敗!'.encode('utf-8')
                 
-            uR = self.scale_PWM.get()
-            uL = self.scale_PWM.get() 
+                # 連接到TCP服務器
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)            
+                sock.settimeout(0.5)
 
-            # 防止計算出之數值溢位
-            if uR > 65535:
-                uR = 65535
-            elif uR < 0:
-                uR = 0
+                uR = self.scale_PWM.get()
+                uL = self.scale_PWM.get() 
+
+                # 防止計算出之數值溢位
+                if uR > 65535:
+                    uR = 65535
+                elif uR < 0:
+                    uR = 0
+                    
+                if uL > 65535:
+                    uL = 65535
+                elif uL < 0:
+                    uL = 0
                 
-            if uL > 65535:
-                uL = 65535
-            elif uL < 0:
-                uL = 0
-
-            pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪PWM、左輪PWM、移動方式包裝成 "struct" 一次發送給開發板
-            
-            try:
-                sock.connect((HOST, PORT))
+                pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪PWM、左輪PWM、移動方式包裝成 "struct" 一次發送給開發板
                 
-                # 傳送指令
-                sock.sendall(pack_data)
+                try:
+                    sock.connect((HOST, PORT))
+                    print(PORT, pack_data)
+                    # 傳送指令
+                    sock.sendall(pack_data)
 
-                # 接收回應
-                data = sock.recv(BUFFER_SIZE)
-            except Exception as e:
-                self.message_information.insert(tk.END, f'{e} \n')
-            finally:
-                sock.close()
+                    # 接收回應
+                    data = sock.recv(BUFFER_SIZE)
+                except Exception as e:
+                    self.message_information.insert(tk.END, f'{e} \n')
+                finally:
+                    sock.close()
+                    
+
+                    # 將回應顯示在訊息框中
+                    now = datetime.datetime.now()
+                    nowhour = str(now.hour)
+                    nowmin = str(now.minute)
+                    nowsec = str(now.second)
+                    self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+                    # 讓訊息框保持在能看到最後一則訊息
+                    self.message_response.see(tk.END)
+                    self.message_information.see(tk.END)                   
                 
-            # 將回應顯示在訊息框中
-            now = datetime.datetime.now()
-            nowhour = str(now.hour)
-            nowmin = str(now.minute)
-            nowsec = str(now.second)
-            self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
-            # 讓訊息框保持在能看到最後一則訊息
-            self.message_response.see(tk.END)
-            self.message_information.see(tk.END)           
-            
-            thread_multi_control = threading.Thread(target= self.multi_control)
-            thread_multi_control.start()
-        
-
 # 建立主視窗
 root = tk.Tk()
 #設定程式啟動時的視窗大小

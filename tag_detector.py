@@ -15,17 +15,18 @@ j, k = 0,0
 # 創建一個apriltag，接著檢測AprilTags
 options = apriltag.Detector(families='tag36h11')  # windows
 angle_of_msrr = []
+list_of_tag_id = []
 
     # -------------- ↓ Apriltag 檢測器 ↓ -------------- # 
 def tag(image):
     
-    global mid_ad, com_angle, angle_of_msrr, error_of_angle, tag_id, all_of_tag_id
+    global mid_ad, com_angle, angle_of_msrr, error_of_angle, tag_id, list_of_tag_id
    
     quadrant = 0
     com_angle = 0
     slope = 0
     error_of_angle = 0
-    all_of_tag_id = []
+
     mid_ad = []
     
 
@@ -71,8 +72,6 @@ def tag(image):
         # cv2.putText(image, 'b', (b[0]-10, b[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
         # cv2.putText(image, 'c', (c[0]-10, c[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0 , 255), 2)
         #cv2.putText(image, 'd', (d[0]-10, d[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-
-        
 
         # 計算 AprilTag 的旋轉角度，並考慮角度為90°或270°而產生斜率為 ∞ 之情形
 
@@ -160,16 +159,12 @@ def tag(image):
                 angle_of_msrr[0] = angle_of_msrr[0]
                 angle_of_msrr[1] = com_angle
         
-        # 存取影像中所有的 AprilTag ID
-        if tag_id not in all_of_tag_id:
-            all_of_tag_id.append(tag_id)
-        
-        else:
-            all_of_tag_id = all_of_tag_id
-        
-        print('LIST OF TAG ID', all_of_tag_id)
+        if tag_id not in list_of_tag_id:
+            list_of_tag_id.append(tag_id)
 
+        
         # ↓ 繪製延伸線段中點連線 ↓ #
+
         cv2.line(image, end_ad, end_bc, (255, 50, 0), 2, lineType=cv2.LINE_8)
 
         # ↓ 標註線段中點與中心點 ↓ #
@@ -182,6 +177,8 @@ def tag(image):
                 
 def get_angle():
     return angle_of_msrr
-    
+
+def get_list_of_tag_id():
+    return list_of_tag_id
     # def get_MID(self):
     #     return self.mid_ad    
