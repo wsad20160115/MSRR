@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pickle
 
-image = cv2.imread('./image/snapshot.jpg')
+image = cv2.imread('./image/tag.png')
 # image = cv2.flip(image, 1)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -58,10 +58,10 @@ for r in results:
 
     # 在影像上顯示AprilTag的Family
     # cv2.putText(image, tagFamily, (a[0], a[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-    # cv2.putText(image, 'a', (a[0]-10, a[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+    cv2.putText(image, 'a', (a[0]-10, a[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
     cv2.putText(image, 'b', (b[0]-10, b[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
     cv2.putText(image, 'c', (c[0]-10, c[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0 , 255), 2)
-    # cv2.putText(image, 'd', (d[0]-10, d[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+    cv2.putText(image, 'd', (d[0]-10, d[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
     #計算 AprilTag 的旋轉角度       
     slope = (c[1]-b[1])/(c[0]-b[0])
@@ -78,8 +78,13 @@ for r in results:
     mid_ad = (mid_ad_x, mid_ad_y)
     mid_bc = (mid_bc_x, mid_bc_y)
     
-    mid_slope = (mid_ad[1]-mid_bc[1])/(mid_ad[0]-mid_bc[0])
-    mid_angle = abs(math.degrees(math.atan(mid_slope)))
+
+    if (mid_ad[0]-mid_bc[0]) == 0:
+        mid_slope = 10000
+        mid_angle = 90
+    else:
+
+        mid_angle = abs(math.degrees(math.atan(mid_slope)))
 
     extend_factor = 1000
     cen_factor = 100
