@@ -122,7 +122,7 @@ class App:
         self.submit_button.place(x=row3, y=col1)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Left", command=lambda: self.send_command("____Left"))
         self.submit_button.place(x=row1, y=col2)
-        self.submit_button = tk.Button(master, width = button_width, height= button_height, text="Stop", command=lambda: self.multi_control("____Stop"))
+        self.submit_button = tk.Button(master, width = button_width, height= button_height, text="Stop", command=lambda: self.send_command("____Stop"))
         self.submit_button.place(x=row2, y=col2)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Right", command=lambda: self.send_command("___Right"))
         self.submit_button.place(x=row3, y=col2)        
@@ -155,7 +155,30 @@ class App:
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Backward \n control", command=lambda: self.command_with_control('Backward'))
         self.submit_button.place(x=row2, y=col7)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Stop \n control", command=lambda: self.command_with_control('____Stop'))
-        self.submit_button.place(x=row3, y=col7)
+        self.submit_button.place(x=row3, y=col7)        
+
+        # 使用 "Multi Control" 功能時，選擇要控制哪些 MSRR
+        self.ID_0_bool = tk.BooleanVar(value=False)
+        self.ID_1_bool = tk.BooleanVar(value=False)
+        self.ID_2_bool = tk.BooleanVar(value=False)
+        self.ID_3_bool = tk.BooleanVar(value=False)
+        self.ID_4_bool = tk.BooleanVar(value=False)
+        self.multi = tk.BooleanVar(value=False)
+
+        self.check_button_multi = tk.Checkbutton(master, text='Multi Control', variable=self.multi, onvalue=True, offvalue=False)
+        self.check_button_multi.place(x=450, y=830)
+
+        self.check_button_id = tk.Checkbutton(master, text='ID 0', variable=self.ID_0_bool, onvalue=True, offvalue=False)
+        self.check_button_id.place(x=450, y=860)
+        self.check_button_id = tk.Checkbutton(master, text='ID 1', variable=self.ID_1_bool, onvalue=True, offvalue=False)
+        self.check_button_id.place(x=500, y=860)
+        self.check_button_id = tk.Checkbutton(master, text='ID 2', variable=self.ID_2_bool, onvalue=True, offvalue=False)
+        self.check_button_id.place(x=550, y=860)
+        self.check_button_id = tk.Checkbutton(master, text='ID 3', variable=self.ID_3_bool, onvalue=True, offvalue=False)
+        self.check_button_id.place(x=600, y=860)
+        self.check_button_id = tk.Checkbutton(master, text='ID 4', variable=self.ID_4_bool, onvalue=True, offvalue=False)
+        self.check_button_id.place(x=650, y=860)
+
         # 訊息框文字
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
         self.message_label.place(x=18, y=55)
@@ -186,12 +209,11 @@ class App:
 
         options = [ #設定連結開發板之IP
             "Choose Master MSRR",
-            "192.168.137.198, 0", 
-            "192.168.137.233, 1",
-            "192.168.137.98, 2",
-            "192.168.137.171, 3",
-            "192.168.137.194, 4", 
-            "192.168.137.211, 5"                   
+            "192.168.50.14, 0", 
+            "192.168.50.55, 1",
+            "192.168.50.60, 2",
+            "192.168.50.122, 3",
+            "192.168.50.208, 4"                     
         ]
         var = tk.StringVar(master)
         var.set(options[0]) #設定初始控制之開發板 IP 為 192.168.50.55
@@ -199,7 +221,7 @@ class App:
         self.option_menu.place(x=22, y=355)
         self.option_menu.config(width=20,height=2)
         
-         # 拉桿設定
+         # 拉桿設定   
         font = ('Courier New', 12, 'bold')
         self.scale_PWM = tk.Scale(
             label='PWM Pulse Width', font=font, orient=tk.HORIZONTAL, showvalue=True,
@@ -338,67 +360,70 @@ class App:
         cv2.imwrite("./image/snapshot.jpg", self.frame)
 
     def send_command(self, command):
-# ----------------------- ↓ Socket 客戶端 ↓ ----------------------- #
-        data='連結失敗!'.encode('utf-8')
-        # 連接到TCP服務器
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        sock.settimeout(0.2)
-        
-        uR = self.scale_PWM.get()
-        uL = self.scale_PWM.get() 
-
-        # 防止計算出之數值溢位
-        if uR > 65535:
-            uR = 65535
-        elif uR < 0:
-            uR = 0
-            
-        if uL > 65535:
-            uL = 65535
-        elif uL < 0:
-            uL = 0
-
-        pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪PWM、左輪PWM、移動方式包裝成 "struct" 一次發送給開發板
-        while True:
-            try:
-                sock.connect((HOST, PORT))
-                
-                # 傳送指令
-                sock.sendall(pack_data)
-
-                # 接收回應
-                data = sock.recv(BUFFER_SIZE)
-                break
-            except socket.timeout:
-                self.message_information.insert(tk.END, f'連線超時，重新連線中... \n')
-                continue
-            except ConnectionRefusedError:
-                self.message_information.insert(tk.END, f'連線被拒絕 \n')
-                break
-            except Exception as e:
-                self.message_information.insert(tk.END, f'發生錯誤 \n')
-                break
-            finally:
-                sock.close()
-
-        if command == '_Connect':
-           self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ '連結' + "\n")
-
-        elif command == 'Dconnect':
-            self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ '解除連結' + "\n")
-
+        if self.multi.get():
+            self.multi_control(command)
         else:
-            # 將回應顯示在訊息框中
-            now = datetime.datetime.now()
-            nowhour = str(now.hour)
-            nowmin = str(now.minute)
-            nowsec = str(now.second)
-            self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
-            # 讓訊息框保持在能看到最後一則訊息
-            self.message_response.see(tk.END)
-            self.message_information.see(tk.END)           
+    # ----------------------- ↓ Socket 客戶端 ↓ ----------------------- #
+            data='連結失敗!'.encode('utf-8')
+            # 連接到TCP服務器
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            
+            sock.settimeout(0.2)
+            
+            uR = self.scale_PWM.get()
+            uL = self.scale_PWM.get() 
 
+            # 防止計算出之數值溢位
+            if uR > 65535:
+                uR = 65535
+            elif uR < 0:
+                uR = 0
+                
+            if uL > 65535:
+                uL = 65535
+            elif uL < 0:
+                uL = 0
+
+            pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪PWM、左輪PWM、移動方式包裝成 "struct" 一次發送給開發板
+
+            while True:
+                try:
+                    sock.connect((HOST, PORT))
+                    
+                    # 傳送指令
+                    sock.sendall(pack_data)
+
+                    # 接收回應
+                    data = sock.recv(BUFFER_SIZE)
+                    break
+                except socket.timeout:
+                    self.message_information.insert(tk.END, f'連線超時，重新連線中... \n')
+                    continue
+                except ConnectionRefusedError:
+                    self.message_information.insert(tk.END, f'連線被拒絕 \n')
+                    break
+                except Exception as e:
+                    self.message_information.insert(tk.END, f'發生錯誤 \n')
+                    break
+                finally:
+                    sock.close()
+
+            if command == '_Connect':
+                self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ '連結' + "\n")
+
+            elif command == 'Dconnect':
+                self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ '解除連結' + "\n")
+
+            else:
+                # 將回應顯示在訊息框中
+                now = datetime.datetime.now()
+                nowhour = str(now.hour)
+                nowmin = str(now.minute)
+                nowsec = str(now.second)
+                self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
+                # 讓訊息框保持在能看到最後一則訊息
+                self.message_response.see(tk.END)
+                self.message_information.see(tk.END)           
 
     def command_with_control(self, command):
         if self.option_ID > 0 and self.option_ID < 10:
@@ -734,34 +759,31 @@ class App:
         thread_send_connect_command.start() # 啟動 send_connect_command 之 Thread
     
     def multi_control(self, command):
-        control_ip = ['192.168.137.233','192.168.137.198'] # 設定
-        j = 0
+        control_ip = [] # 設定
+        
+        if self.ID_0_bool.get():
+            control_ip.append('192.168.50.14')
+            
+        if self.ID_1_bool.get():
+            control_ip.append('192.168.50.55')
 
-        # if 0 in self.list_of_tag_id:
-        #     control_ip.append("192.168.137.198") 
+        if self.ID_2_bool.get():
+            control_ip.append('192.168.50.60')
+        
+        if self.ID_3_bool.get():
+            control_ip.append('192.168.50.122')
 
-        # elif 1 in self.list_of_tag_id:
-        #     control_ip.append("192.168.137.233") 
+        if self.ID_4_bool.get():
+            control_ip.append('192.168.50.208')
 
-        # elif 2 in self.list_of_tag_id:
-        #     control_ip.append("192.168.137.91") 
+        print(control_ip)
 
-        # elif 3 in self.list_of_tag_id:
-        #     control_ip.append("192.168.50.171") 
-
-        # elif 4 in self.list_of_tag_id:
-        #     control_ip.append("192.168.50.194") 
-
-        # elif 5 in self.list_of_tag_id:
-        #     control_ip.append("192.168.50.211")
-
-       
         for HOST in control_ip:
             data='連結失敗!'.encode('utf-8')
             
             # 連接到TCP服務器
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)            
-            sock.settimeout(0.25)
+            sock.settimeout(0.3)
 
             uR = self.scale_PWM.get()
             uL = self.scale_PWM.get() 
@@ -778,27 +800,27 @@ class App:
                 uL = 0
             
             pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪PWM、左輪PWM、移動方式包裝成 "struct" 一次發送給開發板
-            while True:
-                try:
-                    sock.connect((HOST, PORT))
-                    
-                    # 傳送指令
-                    sock.sendall(pack_data)
+            
+            try:
+                sock.connect((HOST, PORT))
+                
+                # 傳送指令
+                sock.sendall(pack_data)
 
-                    # 接收回應
-                    data = sock.recv(BUFFER_SIZE)
-                    break
-                except sock.timeout:
-                    self.message_information.insert(tk.END, f'連線超時，重新連線中... \n')
-                    continue
-                except ConnectionRefusedError:
-                    self.message_information.insert(tk.END, f'連線被拒絕 \n')
-                    break
-                except Exception as e:
-                    self.message_information.insert(tk.END, f'發生錯誤 \n')
-                    break
-                finally:
-                    sock.close()
+                # 接收回應
+                data = sock.recv(BUFFER_SIZE)
+                break
+            except sock.timeout:
+                self.message_information.insert(tk.END, f'連線超時，重新連線中... \n')
+                
+            except ConnectionRefusedError:
+                self.message_information.insert(tk.END, f'連線被拒絕 \n')
+                
+            except Exception as e:
+                self.message_information.insert(tk.END, f'發生錯誤 \n')
+                
+            finally:
+                sock.close()
                 
         # 將回應顯示在訊息框中
         now = datetime.datetime.now()

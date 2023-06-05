@@ -69,7 +69,7 @@ while True:
         c = (tuple(r.corners[1].astype(int))[0], tuple(r.corners[1].astype(int))[1])
         d = (tuple(r.corners[2].astype(int))[0], tuple(r.corners[2].astype(int))[1])
         a = (tuple(r.corners[3].astype(int))[0], tuple(r.corners[3].astype(int))[1])
-
+        id = r.tag_id
         # 繪製檢測到的AprilTag的框
         cv2.line(image, a, b, (255, 0, 255), 1, lineType=cv2.LINE_AA)
         cv2.line(image, b, c, (255, 0, 255), 1, lineType=cv2.LINE_AA)
@@ -191,11 +191,11 @@ while True:
         # cv2.putText(image, 'd', (d[0], d[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 180, 255), 2)
         #cv2.putText(image, str(quadrant), (cen[0]-35, cen[1]+5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)  
         #cv2.putText(image, str(mid_ad), (mid_ad_x, mid_ad_y), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255), 1 )
-
+        cv2.putText(image, 'd', (d[0], d[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (250, 0, 0), 2)
         cv2.putText(image, 'a', (a[0], a[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (250, 0, 0), 2)
         # cv2.putText(image, 'b', (b[0], b[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
         # cv2.putText(image, 'c', (c[0], c[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-        cv2.putText(image, 'd', (d[0], d[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (250, 0, 0), 2)
+        cv2.putText(image, str(id), (cen[0], cen[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (25, 30, 200), 2)
         
     cv2.imshow('AprilTag', image)
         

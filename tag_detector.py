@@ -172,6 +172,7 @@ def tag(image):
         
         com_angle_format = '{:.2f}'.format(com_angle)
         # ↓ 標註物件之旋轉角度 ↓ #
+        cv2.putText(image, str(tag_id), (cen[0], cen[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (25, 30, 200), 2)
         cv2.putText(image, com_angle_format, (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_COMPLEX, 0.8, (180, 255, 0), 2)
         #cv2.putText(image, "Center", (mid_ad[0]-10, mid_ad[1]-10), cv2.FONT_ITALIC, 0.7, (150, 150, 255), 2)
                 
