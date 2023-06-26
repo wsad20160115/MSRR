@@ -37,9 +37,7 @@ class App:
     cal = False
 
     target_x = 0
-    target_y = 0    
-
-    
+    target_y = 0        
 
     now_date = datetime.date.today()
 
@@ -210,10 +208,11 @@ class App:
         options = [ #設定連結開發板之IP
             "Choose Master MSRR",
             "192.168.50.14, 0", 
-            "192.168.50.55, 1",
+            "192.168.50.125, 1",
             "192.168.50.60, 2",
             "192.168.50.122, 3",
-            "192.168.50.208, 4"                     
+            "192.168.50.208, 4",
+            "192.168.50.127, 4"                     
         ]
         var = tk.StringVar(master)
         var.set(options[0]) #設定初始控制之開發板 IP 為 192.168.50.55
@@ -360,6 +359,13 @@ class App:
         cv2.imwrite("./image/snapshot.jpg", self.frame)
 
     def send_command(self, command):
+
+        # 將回應顯示在訊息框中
+        now = datetime.datetime.now()
+        nowhour = str(now.hour)
+        nowmin = str(now.minute)
+        nowsec = str(now.second)
+
         if self.multi.get():
             self.multi_control(command)
         else:
@@ -403,7 +409,7 @@ class App:
                     self.message_information.insert(tk.END, f'連線被拒絕 \n')
                     break
                 except Exception as e:
-                    self.message_information.insert(tk.END, f'發生錯誤 \n')
+                    self.message_information.insert(tk.END, f'發生錯誤 \n')   
                     break
                 finally:
                     sock.close()
@@ -415,11 +421,7 @@ class App:
                 self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ '解除連結' + "\n")
 
             else:
-                # 將回應顯示在訊息框中
-                now = datetime.datetime.now()
-                nowhour = str(now.hour)
-                nowmin = str(now.minute)
-                nowsec = str(now.second)
+                
                 self.message_response.insert(tk.END,'['+nowhour+':'+nowmin+':'+nowsec+']'+':'+ data.decode() + "\n")
                 # 讓訊息框保持在能看到最後一則訊息
                 self.message_response.see(tk.END)
@@ -765,7 +767,7 @@ class App:
             control_ip.append('192.168.50.14')
             
         if self.ID_1_bool.get():
-            control_ip.append('192.168.50.55')
+            control_ip.append('192.168.50.125')
 
         if self.ID_2_bool.get():
             control_ip.append('192.168.50.60')
@@ -776,11 +778,11 @@ class App:
         if self.ID_4_bool.get():
             control_ip.append('192.168.50.208')
 
-        print(control_ip)
 
         for HOST in control_ip:
             data='連結失敗!'.encode('utf-8')
-            
+            print(control_ip)
+            print(HOST)
             # 連接到TCP服務器
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)            
             sock.settimeout(0.3)
@@ -809,8 +811,8 @@ class App:
 
                 # 接收回應
                 data = sock.recv(BUFFER_SIZE)
-                break
-            except sock.timeout:
+                
+            except socket.timeout:
                 self.message_information.insert(tk.END, f'連線超時，重新連線中... \n')
                 
             except ConnectionRefusedError:
@@ -821,7 +823,7 @@ class App:
                 
             finally:
                 sock.close()
-                
+        
         # 將回應顯示在訊息框中
         now = datetime.datetime.now()
         nowhour = str(now.hour)
@@ -831,7 +833,10 @@ class App:
         # 讓訊息框保持在能看到最後一則訊息
         self.message_response.see(tk.END)
         self.message_information.see(tk.END)                   
-                
+
+        thread_multi_control = threading.Thread(target = self.multi_control)
+        thread_multi_control.start()
+
 # 建立主視窗
 root = tk.Tk()
 #設定程式啟動時的視窗大小

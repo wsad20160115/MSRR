@@ -168,7 +168,7 @@ def tag(image):
         cv2.line(image, end_ad, end_bc, (255, 50, 0), 2, lineType=cv2.LINE_8)
 
         # ↓ 標註線段中點與中心點 ↓ #
-        cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (130, 180, 255), 4)
+        cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (130, 180, 255), 4)
         
         com_angle_format = '{:.2f}'.format(com_angle)
         # ↓ 標註物件之旋轉角度 ↓ #

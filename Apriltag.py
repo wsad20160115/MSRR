@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pickle
 
-image = cv2.imread('./image/tag.png')
+image = cv2.imread('./image/snap.jpg')
 # image = cv2.flip(image, 1)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -77,41 +77,46 @@ for r in results:
 
     mid_ad = (mid_ad_x, mid_ad_y)
     mid_bc = (mid_bc_x, mid_bc_y)
-    
 
-    if (mid_ad[0]-mid_bc[0]) == 0:
-        mid_slope = 10000
+    if mid_ad[0]-mid_bc[0] == 0 :
         mid_angle = 90
+    elif b[1] < c[1] and mid_ad[0]-mid_bc[0] == 0:
+        mid_angle = 270
     else:
-
+        mid_slope = (mid_ad[1]-mid_bc[1])/(mid_ad[0]-mid_bc[0])
         mid_angle = abs(math.degrees(math.atan(mid_slope)))
 
-    extend_factor = 1000
+    extend_factor = 500
     cen_factor = 100
 
-    if b[0] < c[0] and b[1] < c[1]:
-        flag = 1        
-        com_angle = angle+270
-        end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-        end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-
-    elif b[0] < c[0] and b[1] > c[1]:
-        flag = 2
+# ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
+    if a[0] < b[0] and a[1] > b[1]: # 當線段 AB 在 第 I 象限之情況
+        quadrant = 1
         com_angle = abs(angle)
-        end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
-        end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-     
-    elif b[0] > c[0] and b[1] > c[1]:
-        flag = 3                     
-        com_angle = angle+90
+        # 當線段 AB 為第 I 象限情況時，BC線段會在第 II 象限
         end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-        end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+        end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
 
-    else :
-        flag = 4   
-        com_angle = abs(angle)+180
+    elif a[0] > b[0] and a[1] > b[1]: # 當線段 AB 在 第 II 象限之情況
+        quadrant = 2         
+        com_angle = (90-angle)+90
+        # 當線段 AB 為第 II 象限情況時，BC線段會在第 III 象限
         end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-        end_ad = (int(mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+        end_ad = (int( mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+
+    elif a[0] > b[0] and a[1] < b[1] : # 當線段 AB 在 第 III 象限之情況
+        quadrant = 3     
+        com_angle = abs(angle)+180
+        # 當線段 AB 為第 III 象限情況時，BC線段會在第 IV 象限
+        end_bc = (int(mid_bc_x-extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+        end_ad = (int( mid_ad_x+extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+
+    elif a[0] < b[0] and a[1] < b[1]: # 當線段 AB 在 第 IV 象限之情況
+        quadrant = 4
+        com_angle = (90-abs(angle))+270
+        # 當線段 AB 為第 IV 象限情況時，BC線段會在第 I 象限  
+        end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+        end_ad = (int( mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y-extend_factor*math.sin(mid_angle*math.pi/180))) 
 
     END_AD_POSITIONS.append(end_ad)
     END_BC_POSITIONS.append(end_bc)
@@ -132,8 +137,8 @@ for r in results:
     cv2.putText(image, str(com_angle), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
     
     # 設定 MSRR 延伸線位置
-    cv2.circle(image, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
-    cv2.circle(image, (end_ad[0], end_ad[1]), 1, (250, 255, 0), 10)
+    # cv2.circle(image, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
+    # cv2.circle(image, (end_ad[0], end_ad[1]), 1, (250, 255, 0), 10)
    
 
     # cv2.putText(image, 'MID_BC', (mid_bc[0]-15, mid_bc[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
@@ -155,13 +160,14 @@ for r in results:
     # cv2.circle(image, (int(end_ad[0]), int(end_ad[1])), 1, (250, 255, 0), 10)
     
     cv2.putText(image, str(flag), cen, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (150, 0, 255), 2)
+    intersection_number = 0
 
     if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
         continue
     else :       
         for k in range (i):
             for j in range (k):
-                
+                intersection_number = intersection_number + 1
                 x1, y1 = END_BC_POSITIONS[j]  # Line_1 start point
                 x2, y2 = END_AD_POSITIONS[j]  # Line_1 end point
 
@@ -183,7 +189,7 @@ for r in results:
 
                 text  = str(f"({intersection_x:.2f}, {intersection_y:.2f})")
                 cv2.circle(image, (int(intersection_x), int(intersection_y)), 1, (0, 200, 255), 10)
-                cv2.putText(image, "Intersection", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
+                cv2.putText(image, f"Intersection {intersection_number}", (int(intersection_x)-60, int(intersection_y)+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
                 # cv2.putText(image, text, (int(intersection_x)-80, int(intersection_y)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
             distance = ((mid_ad[0] - intersection_x)**2 + (mid_ad[1] - intersection_y)**2)**0.5
