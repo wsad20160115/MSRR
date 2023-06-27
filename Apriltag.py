@@ -151,15 +151,15 @@ for r in results:
     cv2.line(image, end_ad, end_bc, (255, 255, 0), 1, lineType=cv2.LINE_8)
 
     # 標註中心點
-    cv2.circle(image, (cen[0], cen[1]), 1, (0, 0, 255),5 )
+    #cv2.circle(image, (cen[0], cen[1]), 1, (0, 0, 255),5 )
 
     # ↓ 標註線段中點 ↓ #
-    cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
-    cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
+    # cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (250, 255, 0), 3)
+    # cv2.circle(image, (mid_ad[0], mid_ad[1]), 1, (250, 255, 0), 3)
     
     # cv2.circle(image, (int(end_ad[0]), int(end_ad[1])), 1, (250, 255, 0), 10)
     
-    cv2.putText(image, str(flag), cen, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (150, 0, 255), 2)
+    #cv2.putText(image, str(flag), cen, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (150, 0, 255), 2)
     intersection_number = 0
 
     if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
@@ -167,7 +167,7 @@ for r in results:
     else :       
         for k in range (i):
             for j in range (k):
-                intersection_number = intersection_number + 1
+                                
                 x1, y1 = END_BC_POSITIONS[j]  # Line_1 start point
                 x2, y2 = END_AD_POSITIONS[j]  # Line_1 end point
 
@@ -183,7 +183,11 @@ for r in results:
                     intersection_y = y1 + ua*(y2-y1)
                     print("j = ", j , "k = ", k)
                     print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
+
+                    if intersection_x < 500 or intersection_y < 500:
+                        intersection_number = intersection_number + 1
                     
+                    print(f"I number: ", intersection_number)
                 else:
                     print("Lines are parallel")
 
