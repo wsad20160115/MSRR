@@ -8,7 +8,6 @@ END_BC_POSITIONS = []
 END_AD_POSITIONS = []
 
 
-
 # 設定 j、k 來進行迴圈的設定
 j, k = 0,0
 
@@ -21,7 +20,7 @@ list_of_tag_id = []
 def tag(image):
     
     global mid_ad, com_angle, angle_of_msrr, error_of_angle, tag_id, list_of_tag_id
-   
+    tag_id = 1000
     quadrant = 0
     com_angle = 0
     slope = 0
@@ -110,7 +109,7 @@ def tag(image):
             mid_angle = abs(math.degrees(math.atan(mid_slope)))
 
         # ↓ 設定延伸線的長度係數 ↓ #
-        extend_factor = 130
+        extend_factor = 200
 
         if special_factor == False:
 # ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
@@ -161,11 +160,10 @@ def tag(image):
         
         if tag_id not in list_of_tag_id:
             list_of_tag_id.append(tag_id)
-
         
         # ↓ 繪製延伸線段中點連線 ↓ #
 
-        cv2.line(image, end_ad, end_bc, (255, 50, 0), 2, lineType=cv2.LINE_8)
+        cv2.line(image, mid_bc, end_bc, (255, 50, 0), 2, lineType=cv2.LINE_8)
 
         # ↓ 標註線段中點與中心點 ↓ #
         cv2.circle(image, (mid_bc[0], mid_bc[1]), 1, (130, 180, 255), 4)

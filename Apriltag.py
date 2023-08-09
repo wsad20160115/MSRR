@@ -91,11 +91,11 @@ for r in results:
 
 # ------------------------------------------------ ↓ 設定4種情況下角度輸出 ↓ ------------------------------------------------ #
     if a[0] < b[0] and a[1] > b[1]: # 當線段 AB 在 第 I 象限之情況
-        quadrant = 1
-        com_angle = abs(angle)
-        # 當線段 AB 為第 I 象限情況時，BC線段會在第 II 象限
-        end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
-        end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
+                quadrant = 1
+                com_angle = abs(angle)
+                # 當線段 AB 為第 I 象限情況時，BC線段會在第 II 象限
+                end_bc = (int(mid_bc_x+extend_factor*math.cos(mid_angle*math.pi/180)), int(mid_bc_y-extend_factor*math.sin(mid_angle*math.pi/180)))
+                end_ad = (int(mid_ad_x-extend_factor*math.cos(mid_angle*math.pi/180)), int( mid_ad_y+extend_factor*math.sin(mid_angle*math.pi/180)))
 
     elif a[0] > b[0] and a[1] > b[1]: # 當線段 AB 在 第 II 象限之情況
         quadrant = 2         
@@ -134,7 +134,7 @@ for r in results:
     # print("END BC = ", END_BC_POSITIONS[i-1])
     
     # cv2.putText(image, str(flag), (cen[0]-10, cen[1]-35), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
-    cv2.putText(image, str(com_angle), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
+    #cv2.putText(image, str(com_angle), (cen[0]-35, cen[1]-15), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (130, 180, 0), 2)
     
     # 設定 MSRR 延伸線位置
     # cv2.circle(image, (end_bc[0], end_bc[1]), 1, (250, 255, 0),10)  
@@ -161,7 +161,8 @@ for r in results:
     
     #cv2.putText(image, str(flag), cen, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (150, 0, 255), 2)
     intersection_number = 0
-
+    inter_point_list = []
+    
     if len(END_BC_POSITIONS) < i or len(END_AD_POSITIONS) < i :
         continue
     else :       
@@ -184,8 +185,11 @@ for r in results:
                     print("j = ", j , "k = ", k)
                     print(f"Intersection point: ({intersection_x:.2f}, {intersection_y:.2f})")
 
-                    if intersection_x < 500 or intersection_y < 500:
+                    if intersection_x > 60 and intersection_x < 1200 and intersection_y > 85 and intersection_y < 600:
                         intersection_number = intersection_number + 1
+                        inter_point = [intersection_x, intersection_y]
+                        inter_point_list.append(inter_point)
+                        print("I list", inter_point_list)
                     
                     print(f"I number: ", intersection_number)
                 else:

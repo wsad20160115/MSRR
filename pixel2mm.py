@@ -24,7 +24,7 @@ import numpy as np
 
 # image = cv2.flip(image, 1)
 
-frame = cv2.imread("./image/calibrate.jpg")
+frame = cv2.imread("./image/after_calibration.jpg")
 
 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -48,7 +48,7 @@ for r in results:
 dist_pixels = ((b[0] - c[0])**2 + (b[1] - c[1])**2)**0.5
 
 # 已知的實際距離
-dist_real = 71 # mm
+dist_real = 62 # mm
 
 # 計算像素與實際長度的換算關係
 pixels_per_mm = dist_pixels / dist_real

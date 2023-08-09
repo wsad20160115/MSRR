@@ -18,9 +18,9 @@ while 1:
     if cv2.waitKey(1) & 0xFF == ord('j'):  # 按j保存一张图片
         i += 1
         u = str(i)
-        firename=str('./calibration/calibration_img'+u+'.jpg')
-        cv2.imwrite(firename, img)
-        print('寫入：',firename)
+        filename=str('./calibration/calibration_img'+u+'.jpg')
+        cv2.imwrite(filename, img)
+        print('寫入：',filename)
     if cv2.waitKey(1) & 0xFF == 27:
         break
 

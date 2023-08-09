@@ -8,7 +8,7 @@ import time
 from PIL import Image, ImageTk
 import struct
 import numpy as np
-import calibration_frame
+
 import sys
 import pickle
 import tag_detector # 引用 tag_detector 之函式庫用以檢測與取得AprilTag參數
@@ -88,7 +88,7 @@ class App:
         self.input_y_label.place(x=175, y=5)
         self.input_y = tk.Entry(master)
         self.input_y.place(x=175, y=25)
-
+        
         # 按鈕設定
         button_width = 12
         button_height = 3
@@ -136,7 +136,7 @@ class App:
         self.submit_button.place(x=row2, y=col4)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Intersection \n Point", command=self.intersection)
         self.submit_button.place(x=row3, y=col4)
-        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Move to \n target", command =lambda: self.multi_control("_Forward"))
+        self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Get \n intersection", command = self.get_intersection_point)
         self.submit_button.place(x=row1, y=col5)
         self.submit_button = tk.Button(master, width = button_width, height = button_height, text="Connect\n Function", command=self.connect_fcn)
         self.submit_button.place(x=row2, y=col5)
@@ -176,6 +176,11 @@ class App:
         self.check_button_id.place(x=600, y=860)
         self.check_button_id = tk.Checkbutton(master, text='ID 4', variable=self.ID_4_bool, onvalue=True, offvalue=False)
         self.check_button_id.place(x=650, y=860)
+
+        self.input_Kp_label = tk.Label(master, text="Kp:")
+        self.input_Kp_label.place(x=800, y=830)
+        self.input_Kp = tk.Entry(master)
+        self.input_Kp.place(x=800, y=860)
 
         # 訊息框文字
         self.message_label = tk.Label(master, text="Response:", font=('Arial', '14'))
@@ -246,7 +251,7 @@ class App:
         # 從攝影機捕捉一張畫面
         ret, self.frame = self.cam.read()
 
-        if self.cal == False: #若按下影像校正鈕，則將畫面轉變為影像校正前之結果
+        if self.cal == True: #若按下影像校正鈕，則將畫面轉變為影像校正前之結果
             # 讀取影像校正檔案
             with open('calibration_parameter.pkl', 'rb') as calibrate:
                 calib_params = pickle.load(calibrate)
@@ -391,7 +396,7 @@ class App:
                 uL = 0
 
             pack_data = struct.pack('ii8s', uR, uL, command.encode()) # 將右輪PWM、左輪PWM、移動方式包裝成 "struct" 一次發送給開發板
-
+            print(command)
             while True:
                 try:
                     sock.connect((HOST, PORT))
@@ -428,7 +433,8 @@ class App:
                 self.message_information.see(tk.END)           
 
     def command_with_control(self, command):
-        if self.option_ID > 0 and self.option_ID < 10:
+        print(self.option_ID)
+        if int(self.option_ID) >= 0 and int(self.option_ID) <= 10:
             self.stop_flag = not self.stop_flag
         else:
             messagebox_text = 'Warning'
@@ -445,8 +451,8 @@ class App:
                 uR = self.scale_PWM.get()
                 uL = self.scale_PWM.get() 
 
-                Kpo = 90
-               
+                Kpo = self.input_Kp.get()
+                print("Kpo: ", Kpo)
                 self.OEM = self.update_angle[int(self.option_ID)] - self.OAM
 
                 print(f'{self.update_angle[int(self.option_ID)]} - {self.OAM} = {self.OEM}')
@@ -657,7 +663,7 @@ class App:
                         self.step = 5
                         self.create_messagebox(message_response, pop_text)
 
-                Kpo = 90 # 控制方向之 P-Control 參數 Kp_orientation
+                Kpo = 30 # 控制方向之 P-Control 參數 Kp_orientation
 
                 Kp = 0.046 # P-Control 數值
       
@@ -702,13 +708,13 @@ class App:
                     uR = int(u)
                     uL = int(u)               
 
-                # 避免控制訊號大於65535後產生溢位導致 MSRR 不停止
-                if uR > 50000: 
+                # 限制左輪與右輪輸出範圍
+                if uR > 35000: 
                     uR = 65535
                 elif uR < 0:
                     uR = 0
 
-                if uL > 50000:
+                if uL > 35000:
                     uL = 65535 
                 elif uL < 0:
                     uL = 0
@@ -837,6 +843,9 @@ class App:
         thread_multi_control = threading.Thread(target = self.multi_control)
         thread_multi_control.start()
 
+    def get_intersection_point(self):
+        import get_intersection
+        get_intersection.tag_with_intersection()
 # 建立主視窗
 root = tk.Tk()
 #設定程式啟動時的視窗大小
